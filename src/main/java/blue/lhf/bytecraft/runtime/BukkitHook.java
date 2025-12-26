@@ -74,10 +74,16 @@ public class BukkitHook {
         return new PostCompileClass(builder.compile(), builder.getName(), builder.getInternalName());
     }
 
+    //FIXME: Make ByteSkript's ScriptRunner load scripts using the right class loader (Skript#loadScript)
+    /**
+     * A bootstrap class that loads all scripts in the current JAR. Code is adapted from {@link ScriptRunner}, which
+     * can't be used because it loads classes with the current class loader instead of using the Skript class loader,
+     * which causes issues.
+     * */
     public static class Bootstrap {
         public static void run() throws Exception {
             final Skript skript = new Skript(null);
-            final CodeSource src = ScriptRunner.class.getProtectionDomain().getCodeSource();
+            final CodeSource src = Bootstrap.class.getProtectionDomain().getCodeSource();
             if (src == null) {
                 throw new ScriptRuntimeError("Unable to access source.");
             }

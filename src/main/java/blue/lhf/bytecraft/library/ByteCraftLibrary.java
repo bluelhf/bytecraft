@@ -8,6 +8,11 @@ import org.byteskript.skript.compiler.CompileState;
 import java.io.IOException;
 import java.util.Collection;
 
+/**
+ * The ByteCraft library for ByteSkript. Includes syntaxes for interacting with Bukkit as well as a hook
+ * that may be declared as the plugin main class in plugin.yml to automatically load all scripts when the plugin
+ * is enabled.
+ * */
 public class ByteCraftLibrary extends ModifiableLibrary {
 
     private final Collection<PostCompileClass> bukkitHook;

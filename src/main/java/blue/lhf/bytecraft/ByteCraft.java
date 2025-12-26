@@ -3,6 +3,9 @@ package blue.lhf.bytecraft;
 import blue.lhf.bytecraft.library.ByteCraftLibrary;
 import org.byteskript.skript.runtime.Skript;
 
+/**
+ * The entry point for the ByteCraft library for ByteSkript. Simply registers {@link ByteCraftLibrary} as a library.
+ * */
 public class ByteCraft {
     /**
      * Entry point for ByteSkript to load ByteCraft. Called by ByteSkript when the resulting .jar
