@@ -5,12 +5,16 @@ import blue.lhf.bytecraft.library.plugin_hook.DescriptionTree;
 import mx.kenzie.foundation.Type;
 import org.byteskript.skript.api.ModifiableLibrary;
 import org.byteskript.skript.api.note.Documentation;
+import org.byteskript.skript.api.resource.Resource;
 import org.byteskript.skript.api.syntax.Member;
 import org.byteskript.skript.compiler.*;
 import org.byteskript.skript.compiler.structure.SectionMeta;
 import org.byteskript.skript.error.ScriptCompileError;
 import org.byteskript.skript.lang.element.StandardElements;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.dataformat.yaml.YAMLFactory;
 
+import java.io.*;
 import java.util.List;
 
 @Documentation(
@@ -37,13 +41,14 @@ public class MemberPlugin extends Member {
 
     @Override
     public Pattern.Match match(final String thing, final Context context) {
-        if (true) {
-            context.getError().addHint(this, "The plugin member is not supported yet and does nothing");
-            return null;
-        }
         if (!"plugin".equals(thing)) return null;
         if (context.hasFlag(AreaFlag.IN_TYPE)) {
             context.getError().addHint(this, "The plugin member must be a root-level element.");
+            return null;
+        }
+
+        if (context.hasFlag(ByteCraftFlag.HAS_PLUGIN_MEMBER)) {
+            context.getError().addHint(this, "The plugin member may only be used once.");
             return null;
         }
 
@@ -57,6 +62,7 @@ public class MemberPlugin extends Member {
     @Override
     public void compile(final Context context, final Pattern.Match match) {
         context.addFlag(ByteCraftFlag.IN_PLUGIN_MEMBER);
+        context.addFlag(ByteCraftFlag.HAS_PLUGIN_MEMBER);
         context.setState(CompileState.MEMBER_BODY);
         context.createTree(new DescriptionTree(context.getSection()));
     }
@@ -70,6 +76,23 @@ public class MemberPlugin extends Member {
         if (!missingMandatoryFields.isEmpty()) {
             throw new ScriptCompileError(context.lineNumber(), "The 'plugin' section is missing the following mandatory entries: " + String.join(", ", missingMandatoryFields));
         }
+
+        context.addResource(new Resource() {
+            @Override
+            public InputStream open() throws IOException {
+                final PipedInputStream result = new PipedInputStream();
+                try (final PipedOutputStream stream = new PipedOutputStream(result)) {
+                    final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+                    mapper.writeValue(stream, description);
+                }
+                return result;
+            }
+
+            @Override
+            public String getEntryName() {
+                return "plugin.yml";
+            }
+        });
         context.closeAllTrees();
         context.removeTree(description);
         super.onSectionExit(context, meta);

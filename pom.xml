@@ -4,33 +4,30 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>blue.lhf</groupId>
-    <artifactId>bytecraft</artifactId>
+    <groupId>blue.lhf.bytecraft</groupId>
+    <artifactId>bytecraft-parent</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <modules>
+        <module>bytecraft-library</module>
+        <module>bytecraft-bootstrap</module>
+        <module>bytecraft-interface</module>
+    </modules>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <jackson.version>3.0.3</jackson.version>
+        <byteskript.version>1.0.41</byteskript.version>
     </properties>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.5.0</version>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <!-- Used by ByteSkript to load the library -->
-                            <mainClass>blue.lhf.bytecraft.ByteCraft</mainClass>
-                        </manifest>
-                    </archive>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>maven-snapshots</id>
+            <url>https://repository.apache.org/content/repositories/snapshots/</url>
+        </pluginRepository>
+    </pluginRepositories>
 
     <repositories>
         <repository>
@@ -38,26 +35,6 @@
             <name>Kenzie's Repository</name>
             <url>https://repo.kenzie.mx</url>
         </repository>
-        <repository>
-            <id>papermc</id>
-            <name>PaperMC Repository</name>
-            <url>https://repo.papermc.io/repository/maven-public/</url>
-        </repository>
     </repositories>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.byteskript</groupId>
-            <artifactId>byteskript</artifactId>
-            <version>1.0.41</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.papermc.paper</groupId>
-            <artifactId>paper-api</artifactId>
-            <version>1.21.11-R0.1-SNAPSHOT</version>
-            <scope>provided</scope>
-        </dependency>
-    </dependencies>
 
 </project>

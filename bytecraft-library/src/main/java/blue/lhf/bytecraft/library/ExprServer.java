@@ -1,6 +1,7 @@
 package blue.lhf.bytecraft.library;
 
 import mx.kenzie.foundation.*;
+import org.bukkit.Server;
 import org.byteskript.skript.api.ModifiableLibrary;
 import org.byteskript.skript.api.note.Documentation;
 import org.byteskript.skript.api.syntax.SimpleExpression;
@@ -24,7 +25,7 @@ public class ExprServer extends SimpleExpression {
 
     public ExprServer(final ModifiableLibrary registrar) {
         super(registrar, StandardElements.EXPRESSION, "[the] [current[ly running]] [bukkit] server");
-        this.serverType = registrar.registerType("org.bukkit.Server");
+        this.serverType = registrar.registerType(Server.class);
     }
 
     @Override

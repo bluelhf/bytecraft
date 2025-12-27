@@ -1,6 +1,8 @@
 package blue.lhf.bytecraft.library.plugin_hook;
 
-import blue.lhf.bytecraft.library.plugin_hook.description.*;
+import blue.lhf.bytecraft.library.plugin_hook.description.MemberPlugin;
+import blue.lhf.bytecraft.runtime.BukkitHook;
+import com.fasterxml.jackson.annotation.*;
 import org.byteskript.skript.api.SyntaxElement;
 import org.byteskript.skript.compiler.structure.BasicTree;
 import org.byteskript.skript.compiler.structure.SectionMeta;
@@ -8,15 +10,32 @@ import org.byteskript.skript.compiler.structure.SectionMeta;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
+
 /**
  * A ByteSkript tree structure that holds plugin description information when in a plugin description section ({@link MemberPlugin}).
  *
  * @see <a href="https://docs.papermc.io/paper/dev/plugin-yml/">PaperMC <code>plugin.yml</code> Reference</a>
  * */
+@JsonAutoDetect(
+        getterVisibility = NONE, fieldVisibility = NONE,
+        setterVisibility = NONE, isGetterVisibility = NONE, creatorVisibility = NONE
+)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class DescriptionTree extends BasicTree {
+    @JsonProperty("main")
+    private final String main = BukkitHook.COMPILED_HOOK_TYPE.dotPath();
+
+    @JsonProperty("name")
     private String name = null;
+
+    @JsonProperty("version")
     private String version = null;
+
+    @JsonProperty("api-version")
     private String apiVersion = null;
+
+    @JsonProperty("description")
     private String description = null;
 
     public DescriptionTree(final SectionMeta owner) {

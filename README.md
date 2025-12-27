@@ -15,28 +15,29 @@ ByteCraft is a ByteSkript library that provides Bukkit server integration capabi
 ## Installation
 
 1. Build the project using Maven: `mvn package`
-2. Move the compiled archive from `target/bytecraft-<VERSION>.jar` to your ByteSkript project's `libraries/` directory
+2. Move the compiled archive from `bytecraft-bootstrap/target/bytecraft-bootstrap-<VERSION>.jar` to your ByteSkript project's `libraries/` directory
 3. Place your scripts in the project's `skript/` directory. You may use this as an example:
    ```
+    plugin:
+        name: Test Plugin
+        version: 1.0.0
     on load:
         trigger:
             print "Hello from Test!"
             print "The server is on version " + getBukkitVersion() of the server
     ```
-4. Place your `plugin.yml` in the project's `resources/` directory
-   following this example:
-    ```yaml
-    # Has to be exactly this for ByteCraft to load your scripts
-    main: blue.lhf.bytecraft.runtime.BukkitHook$CompiledHook
-    
-    # Name of your plugin
-    name: MyTestPlugin
-    
-    # Plugin version and minimum Minecraft version
-    version: 1.0.0
-    api-version: "1.21"
-    ```
-5. Run ByteSkript as normal: `java -jar ByteSkript-<VERSION>.jar jar` (a total of three `jar`s)
-6. Get your plugin from `compiled/CompiledScripts.jar` and place it in your server's `plugins/` folder
-7. Restart your server
-8. Enjoy!
+4. Run ByteSkript as normal: `java -jar ByteSkript-<VERSION>.jar jar` (a total of three `jar`s)
+5. Get your plugin from `compiled/CompiledScripts.jar` and place it in your server's `plugins/` folder
+6. Restart your server
+7. Enjoy!
+
+## Project Structure
+
+ByteCraft is split into three Maven submodules; an interface, library, and bootstrap.
+- The library (`bytecraft-library/`) contains practically all useful code, and there is little
+reason to look at any of the other directories.
+- The bootstrap (`bytecraft-bootstrap/`) handles
+loading ByteCraft's dependencies and ByteCraft itself onto the classpath when ByteSkript loads.
+- The interface (`bytecraft-interface/`) is only there so that the library and bootstrap have a common
+ground to use as the basis for service provider communication. At run-time, it is included as part of
+the bootstrap.
