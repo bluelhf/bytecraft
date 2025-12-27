@@ -70,7 +70,6 @@ public class MemberPlugin extends Member {
         if (!missingMandatoryFields.isEmpty()) {
             throw new ScriptCompileError(context.lineNumber(), "The 'plugin' section is missing the following mandatory entries: " + String.join(", ", missingMandatoryFields));
         }
-        System.err.println("Writing plugin named " + description.getName() + " v" + description.getVersion());
         context.closeAllTrees();
         context.removeTree(description);
         super.onSectionExit(context, meta);
