@@ -1,8 +1,10 @@
-package blue.lhf.bytecraft.library;
+package blue.lhf.bytecraft;
 
-import blue.lhf.bytecraft.BytecraftProvider;
+import blue.lhf.bytecraft.library.ExprPlugin;
+import blue.lhf.bytecraft.library.ExprServer;
+import blue.lhf.bytecraft.library.events.EventEnable;
 import blue.lhf.bytecraft.library.plugin_hook.description.*;
-import blue.lhf.bytecraft.runtime.BukkitHook;
+import blue.lhf.bytecraft.runtime.*;
 import org.byteskript.skript.api.ModifiableLibrary;
 import org.byteskript.skript.api.resource.Resource;
 import org.byteskript.skript.compiler.CompileState;
@@ -23,10 +25,13 @@ public class ByteCraftLibrary extends ModifiableLibrary implements BytecraftProv
 
     public ByteCraftLibrary() throws IOException {
         super("ByteCraft Library");
-        registerSyntax(CompileState.STATEMENT, new ExprServer(this));
-        registerSyntax(CompileState.ROOT, new MemberPlugin(this));
-        registerSyntax(CompileState.MEMBER_BODY, new EntryName(this), new EntryVersion(this));
+        registerSyntax(CompileState.STATEMENT, new ExprServer(this), new ExprPlugin(this));
+        registerSyntax(CompileState.ROOT, new MemberPlugin(this), new EventEnable());
+        registerSyntax(CompileState.MEMBER_BODY,
+                new EntryName(this), new EntryVersion(this),
+                new EntryApiVersion(this), new EntryDescription(this));
         runtime.addAll(BukkitHook.hookRuntime().stream().map(Resource::ofCompiledClass).toList());
+        runtime.add(Resource.ofCompiledClass(RuntimeUtility.readClassBytes(Enable.class)));
     }
 
     @Override

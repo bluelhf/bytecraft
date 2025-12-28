@@ -11,7 +11,6 @@ import org.objectweb.asm.ClassReader;
 
 import java.io.*;
 import java.net.URL;
-import java.nio.file.NoSuchFileException;
 import java.security.CodeSource;
 import java.util.*;
 import java.util.logging.Level;
@@ -26,29 +25,26 @@ public class BukkitHook {
     public static final Type COMPILED_HOOK_TYPE = new Type(BootstrapPlugin.class);
 
     public static class BootstrapPlugin extends JavaPlugin {
+        private final Skript skript = new Skript(null);
         @Override
-        public void onEnable() {
+        public void onLoad() {
             try {
-                Bootstrap.run();
+                Bootstrap.run(skript);
             } catch (final Exception e) {
                 getLogger().log(Level.SEVERE, "Failed to run script", e);
             }
+        }
+
+        @Override
+        public void onEnable() {
+            skript.runEvent(new Enable());
         }
     }
 
     private BukkitHook() {}
 
     public static Collection<PostCompileClass> hookRuntime() throws IOException {
-        return Set.of(readClassBytes(Bootstrap.class), readClassBytes(BootstrapPlugin.class));
-    }
-
-    private static PostCompileClass readClassBytes(final Class<?> clazz) throws IOException {
-        final String filepath = clazz.getName().replace('.', '/') + ".class";
-        try (final InputStream byteStream = clazz.getClassLoader().getResourceAsStream(filepath)) {
-            if (byteStream == null) throw new NoSuchFileException(filepath, null, "The class loader for " + clazz + " did not have a resource " + filepath);
-            final Type type = new Type(clazz);
-            return new PostCompileClass(byteStream.readAllBytes(), type.getTypeName(), type.internalName());
-        }
+        return Set.of(RuntimeUtility.readClassBytes(Bootstrap.class), RuntimeUtility.readClassBytes(BootstrapPlugin.class));
     }
 
     //FIXME: Make ByteSkript's ScriptRunner load scripts using the right class loader (Skript#loadScript)
@@ -58,8 +54,7 @@ public class BukkitHook {
      * which causes issues.
      * */
     public static class Bootstrap {
-        public static void run() throws Exception {
-            final Skript skript = new Skript(null);
+        public static void run(final Skript skript) throws Exception {
             final CodeSource src = Bootstrap.class.getProtectionDomain().getCodeSource();
             if (src == null) {
                 throw new ScriptRuntimeError("Unable to access source.");
@@ -83,7 +78,7 @@ public class BukkitHook {
                 }
             }
 
-            (new SimpleThrottleController(skript)).run();
+            skript.runScript(new SimpleThrottleController(skript));
         }
     }
 }

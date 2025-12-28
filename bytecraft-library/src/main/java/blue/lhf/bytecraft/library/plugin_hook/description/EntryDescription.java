@@ -6,23 +6,24 @@ import org.byteskript.skript.api.ModifiableLibrary;
 import org.byteskript.skript.api.note.Documentation;
 
 @Documentation(
-    name = "Plugin Name",
-    description = "Specifies the plugin name to write into plugin.yml for the generated JAR.",
+    name = "Plugin Description",
+    description = "Specifies the plugin description to write into plugin.yml for the generated JAR.",
     examples = {
         """
             plugin:
                 name: Example Plugin
+                description: This is a cool plugin that does stuff.
             """
     }
 )
-public class EntryName extends PluginDescriptionEntry {
-    public EntryName(final ModifiableLibrary provider) {
-        super(provider, "name");
+public class EntryDescription extends PluginDescriptionEntry {
+    public EntryDescription(final ModifiableLibrary provider) {
+        super(provider, "description");
     }
 
     @Override
     public void update(final DescriptionTree tree, final String newValue) {
-        tree.setName(newValue);
+        tree.setDescription(newValue);
     }
 }
 
