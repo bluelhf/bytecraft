@@ -60,7 +60,7 @@ public class BukkitHook {
         public static void run(final Skript skript) throws Exception {
             for (final Resource resource : RuntimeCollector.collectRuntime(Bootstrap.class.getProtectionDomain(), "skript")) {
                 if (!(resource instanceof final ClassResource classResource)) continue;
-                skript.loadScript(classResource.open());
+                skript.loadScript(classResource.open(), classResource.source().name());
             }
         }
     }
