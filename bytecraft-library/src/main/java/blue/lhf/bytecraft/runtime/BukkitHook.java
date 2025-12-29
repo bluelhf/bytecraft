@@ -50,7 +50,7 @@ public class BukkitHook {
                 }
             }, 1, 1);
 
-            skript.runEvent(new Enable());
+            skript.runEvent(new Enable()).all().join();
         }
     }
 
