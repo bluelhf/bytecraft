@@ -30,8 +30,10 @@ public class ByteCraftLibrary extends ModifiableLibrary implements BytecraftProv
         registerSyntax(CompileState.MEMBER_BODY,
                 new EntryName(this), new EntryVersion(this),
                 new EntryApiVersion(this), new EntryDescription(this));
-        runtime.addAll(BukkitHook.hookRuntime().stream().map(Resource::ofCompiledClass).toList());
-        runtime.add(Resource.ofCompiledClass(RuntimeUtility.readClassBytes(Enable.class)));
+
+        runtime.addAll(RuntimeCollector.collectRuntime(
+                ByteCraftLibrary.class.getProtectionDomain(),
+                "blue/lhf/bytecraft/runtime/"));
     }
 
     @Override

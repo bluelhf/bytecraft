@@ -1,27 +1,22 @@
 package blue.lhf.bytecraft.runtime;
 
-import mx.kenzie.foundation.*;
-import mx.kenzie.foundation.language.PostCompileClass;
+import mx.kenzie.foundation.Type;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.byteskript.skript.app.ScriptRunner;
-import org.byteskript.skript.app.SimpleThrottleController;
-import org.byteskript.skript.error.ScriptRuntimeError;
+import org.byteskript.skript.api.resource.ClassResource;
+import org.byteskript.skript.api.resource.Resource;
 import org.byteskript.skript.runtime.Skript;
-import org.objectweb.asm.ClassReader;
+import org.byteskript.skript.runtime.internal.Instruction;
+import org.byteskript.skript.runtime.threading.AirlockQueue;
+import org.byteskript.skript.runtime.threading.OperationController;
 
-import java.io.*;
-import java.net.URL;
-import java.security.CodeSource;
-import java.util.*;
+import java.util.ListIterator;
 import java.util.logging.Level;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 /**
  * Utility class for building a Bukkit plugin entrypoint.
  **/
 public class BukkitHook {
-
     public static final Type COMPILED_HOOK_TYPE = new Type(BootstrapPlugin.class);
 
     public static class BootstrapPlugin extends JavaPlugin {
@@ -37,48 +32,36 @@ public class BukkitHook {
 
         @Override
         public void onEnable() {
+            Bukkit.getScheduler().runTaskTimer(JavaPlugin.getProvidingPlugin(Bootstrap.class), () -> {
+                for (final OperationController controller : skript.getProcesses()) {
+                    final AirlockQueue queue;
+                    synchronized (queue = controller.getQueue()) {
+                        final ListIterator<Instruction<?>> iterator = queue.listIterator();
+                        while (iterator.hasNext()) {
+                            iterator.next().runSafely();
+                            iterator.remove();
+                        }
+                    }
+
+                    //noinspection SynchronizationOnLocalVariableOrMethodParameter - Controller is referenced by other threads
+                    synchronized (controller) {
+                        controller.notifyAll();
+                    }
+                }
+            }, 1, 1);
+
             skript.runEvent(new Enable());
         }
     }
 
     private BukkitHook() {}
 
-    public static Collection<PostCompileClass> hookRuntime() throws IOException {
-        return Set.of(RuntimeUtility.readClassBytes(Bootstrap.class), RuntimeUtility.readClassBytes(BootstrapPlugin.class));
-    }
-
-    //FIXME: Make ByteSkript's ScriptRunner load scripts using the right class loader (Skript#loadScript)
-    /**
-     * A bootstrap class that loads all scripts in the current JAR. Code is adapted from {@link ScriptRunner}, which
-     * can't be used because it loads classes with the current class loader instead of using the Skript class loader,
-     * which causes issues.
-     * */
     public static class Bootstrap {
         public static void run(final Skript skript) throws Exception {
-            final CodeSource src = Bootstrap.class.getProtectionDomain().getCodeSource();
-            if (src == null) {
-                throw new ScriptRuntimeError("Unable to access source.");
+            for (final Resource resource : RuntimeCollector.collectRuntime(Bootstrap.class.getProtectionDomain(), "skript")) {
+                if (!(resource instanceof final ClassResource classResource)) continue;
+                skript.loadScript(classResource.open());
             }
-
-            final URL jar = src.getLocation();
-
-            try (final ZipInputStream zip = new ZipInputStream(jar.openStream())) {
-                for (ZipEntry entry = zip.getNextEntry(); entry != null; entry = zip.getNextEntry()) {
-                    if (!entry.isDirectory()) {
-                        final String name = entry.getName();
-                        if (name.endsWith(".class") && name.startsWith("skript/")) {
-                            try (final ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-                                zip.transferTo(out);
-                                final byte[] bytes = out.toByteArray();
-                                final ClassReader reader = new ClassReader(bytes);
-                                skript.loadScript(bytes, reader.getClassName().replace('/', '.'));
-                            }
-                        }
-                    }
-                }
-            }
-
-            skript.runScript(new SimpleThrottleController(skript));
         }
     }
 }
