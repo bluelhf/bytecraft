@@ -34,6 +34,8 @@ public class ByteCraftLibrary extends ModifiableLibrary implements BytecraftProv
         runtime.addAll(RuntimeCollector.collectRuntime(
                 ByteCraftLibrary.class.getProtectionDomain(),
                 "blue/lhf/bytecraft/runtime/"));
+
+        runtime.addAll(RuntimeCollector.collectRuntime(ByteCraftLibrary.class.getProtectionDomain(), "bytecraft.class"));
     }
 
     @Override
