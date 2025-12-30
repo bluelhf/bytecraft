@@ -17,7 +17,7 @@ ByteCraft is a ByteSkript library that provides Bukkit server integration capabi
 1. Build the project using Maven: `mvn package`
 2. Move the compiled archive from `bytecraft-bootstrap/target/bytecraft-bootstrap-<VERSION>.jar` to your ByteSkript project's `libraries/` directory
 3. Place your scripts in the project's `skript/` directory. You may use this as an example:
-   ```
+   ```applescript
     plugin:
         name: Test Plugin
         version: 1.0.0
