@@ -1,10 +1,17 @@
 package blue.lhf.bytecraft;
 
-import blue.lhf.bytecraft.library.ExprPlugin;
-import blue.lhf.bytecraft.library.ExprServer;
+import blue.lhf.bytecraft.library.*;
+import blue.lhf.bytecraft.library.directions.CardinalLiteral;
+import blue.lhf.bytecraft.library.directions.EgocentricLiteral;
 import blue.lhf.bytecraft.library.events.EventEnable;
 import blue.lhf.bytecraft.library.plugin_hook.description.*;
-import blue.lhf.bytecraft.runtime.*;
+import blue.lhf.bytecraft.runtime.Egocentric;
+import blue.lhf.bytecraft.runtime.RuntimeCollector;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.byteskript.skript.api.ModifiableLibrary;
 import org.byteskript.skript.api.resource.Resource;
 import org.byteskript.skript.compiler.CompileState;
@@ -25,11 +32,26 @@ public class ByteCraftLibrary extends ModifiableLibrary implements BytecraftProv
 
     public ByteCraftLibrary() throws IOException {
         super("ByteCraft Library");
-        registerSyntax(CompileState.STATEMENT, new ExprServer(this), new ExprPlugin(this));
+        registerSyntax(CompileState.STATEMENT,
+                new ExprServer(this),
+                new ExprPlugin(this),
+                new EgocentricLiteral(),
+                new CardinalLiteral(),
+                new ExprBlockAt(this),
+                new ExprLocation(this),
+                new ExprWorld(this));
+
         registerSyntax(CompileState.ROOT, new MemberPlugin(this), new EventEnable());
+
         registerSyntax(CompileState.MEMBER_BODY,
-                new EntryName(this), new EntryVersion(this),
-                new EntryApiVersion(this), new EntryDescription(this));
+                new EntryName(this),
+                new EntryVersion(this),
+                new EntryApiVersion(this),
+                new EntryDescription(this));
+
+        registerTypes(
+                Location.class, Block.class, CommandSourceStack.class,
+                World.class, BlockFace.class, Egocentric.class);
 
         runtime.addAll(RuntimeCollector.collectRuntime(
                 ByteCraftLibrary.class.getProtectionDomain(),
