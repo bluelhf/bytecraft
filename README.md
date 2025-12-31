@@ -1,6 +1,6 @@
 > [!Warning]
-> This repository is a stub. While ByteCraft works, it does not include
-> any additional syntaxes for interacting with the Bukkit server.
+> This repository is a stub. While ByteCraft works, it only includes
+> minimal syntax for interacting with the Bukkit server.
 
 # ByteCraft
 
