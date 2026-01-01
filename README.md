@@ -14,9 +14,8 @@ ByteCraft is a [ByteSkript](https://github.com/Moderocky/ByteSkript) library tha
 
 ## Installation
 
-1. Download [the latest bootstrap](http://maven.lhf.blue/api/maven/latest/file/snapshots/blue/lhf/bytecraft/bytecraft-bootstrap) or build it yourself using Maven `mvn package`
-   - You can also build it yourself by downloading this repository as a .zip, extracting it and running `./mvnw package` in the terminal. It'll be available in `bytecraft-bootstrap/target/`.
-3. Move the bootstrap JAR to your ByteSkript project's `libraries/` directory
+1. Download [the latest bootstrap](http://maven.lhf.blue/api/maven/latest/file/snapshots/blue/lhf/bytecraft/bytecraft-bootstrap).
+3. Move the bootstrap JAR to your ByteSkript project's `libraries/` directory.
 4. Place your scripts in the project's `skript/` directory. You may use this as an example:
    ```applescript
     plugin:
@@ -31,6 +30,15 @@ ByteCraft is a [ByteSkript](https://github.com/Moderocky/ByteSkript) library tha
 6. Get your plugin from `compiled/CompiledScripts.jar` and place it in your server's `plugins/` folder
 7. Restart your server
 8. Enjoy!
+
+## Build Instructions
+
+You must have [git](https://git-scm.com/install/) and [Java 25](https://adoptium.net/temurin/releases/?version=25) installed.
+
+1. Open the Terminal.
+2. Clone the repository using `git clone https://github.com/bluelhf/bytecraft/`
+3. Move to it using `cd bytecraft`
+4. Build using `./mvnw package`
 
 ## Project Structure
 
