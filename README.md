@@ -4,13 +4,13 @@
 
 # ByteCraft
 
-ByteCraft is a ByteSkript library that provides Bukkit server integration capabilities.
+ByteCraft is a [ByteSkript](https://github.com/Moderocky/ByteSkript) library that provides [Paper](https://papermc.io/software/paper/) server integration capabilities.
 
 ## Prerequisites
 
 - Java 21 or higher
 - ByteSkript compiler
-- Bukkit server
+- Paper server
 
 ## Installation
 
