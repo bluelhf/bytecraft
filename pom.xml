@@ -14,6 +14,19 @@
         <module>bytecraft-interface</module>
     </modules>
 
+    <distributionManagement>
+        <snapshotRepository>
+            <id>kiputyttö-snapshots</id>
+            <name>Ilari's Project Repository</name>
+            <url>https://maven.lhf.blue/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>kiputyttö-releases</id>
+            <name>Ilari's Project Repository</name>
+            <url>https://maven.lhf.blue/releases</url>
+        </repository>
+    </distributionManagement>
+
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
