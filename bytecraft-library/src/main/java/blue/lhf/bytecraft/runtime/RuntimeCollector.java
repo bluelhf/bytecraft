@@ -9,6 +9,7 @@ import org.objectweb.asm.ClassReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URL;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.CodeSource;
@@ -18,15 +19,50 @@ import java.util.*;
 import static java.nio.file.FileVisitResult.CONTINUE;
 
 public class RuntimeCollector {
+
+    private interface RootSupplier extends AutoCloseable {
+        Iterable<Path> getRootDirectories();
+
+        static RootSupplier forURL(final URL location) throws IOException {
+            if (location.getPath().endsWith(".jar")) return new JarRootSupplier(FileSystems.newFileSystem(URI.create("jar:" + location), Map.of()));
+            else return new DirectoryRootSupplier(Path.of(URI.create(location.toString())));
+        }
+
+        @Override
+        void close() throws IOException;
+    }
+
+    private record JarRootSupplier(FileSystem jarFs) implements RootSupplier {
+        @Override
+        public Iterable<Path> getRootDirectories() {
+            return jarFs.getRootDirectories();
+        }
+
+        @Override
+        public void close() throws IOException {
+            jarFs.close();
+        }
+    }
+
+    private record DirectoryRootSupplier(Path directory) implements RootSupplier {
+        @Override
+        public Iterable<Path> getRootDirectories() {
+            return Collections.singleton(directory);
+        }
+
+        @Override
+        public void close() {
+        }
+    }
+
     public static List<Resource> collectRuntime(final ProtectionDomain domain, final String prefix) throws IOException {
         final List<Resource> runtime = new ArrayList<>();
 
         final CodeSource source = domain.getCodeSource();
         if (source == null) throw new IOException("Cannot initialise runtime because code source isn't available");
 
-        final URI base = URI.create("jar:" + source.getLocation());
-        try (final FileSystem jarFs = FileSystems.newFileSystem(base, Map.of())) {
-            for (final Path root : jarFs.getRootDirectories()) {
+        try (final RootSupplier supplier = RootSupplier.forURL(source.getLocation())) {
+            for (final Path root : supplier.getRootDirectories()) {
                 final Path effectivePrefix = root.resolve(prefix);
                 Files.walkFileTree(root, new SimpleFileVisitor<>() {
                     @Override
