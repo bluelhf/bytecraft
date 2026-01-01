@@ -39,6 +39,7 @@ You must have [git](https://git-scm.com/install/) and [Java 25](https://adoptium
 2. Clone the repository using `git clone https://github.com/bluelhf/bytecraft/`
 3. Move to it using `cd bytecraft`
 4. Build using `./mvnw package`
+5. The Bytecraft JAR is now available in `bytecraft-bootstrap/target/` :tada:
 
 ## Project Structure
 
