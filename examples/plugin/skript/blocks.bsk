@@ -1,0 +1,5 @@
+// This script simply demonstrates using functions from other scripts.
+function block_below (location):
+    return: org/bukkit/block/Block
+    trigger:
+        return block 1 metre below {location}

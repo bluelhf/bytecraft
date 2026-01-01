@@ -1,0 +1,64 @@
+// The ByteSkript 'dictionary' member allows us to import Java types so we don't need to specify
+// full paths to them when referring to them in our code :)
+dictionary:
+    import type io/papermc/paper/plugin/lifecycle/event/types/LifecycleEvents
+    import type io/papermc/paper/plugin/lifecycle/event/handler/LifecycleEventHandler
+    import type io/papermc/paper/plugin/lifecycle/event/LifecycleEvent
+    import type io/papermc/paper/command/brigadier/Commands
+
+// This section allows us to define details about our plugin.
+// Only one 'plugin' section can exist in a script, and the script must be called index.bsk for it to work.
+// These values are written to the plugin.yml that ends up in the final .JAR file.
+plugin:
+    name: "Example Plugin"
+    version: "1.0.0"
+    api-version: "1.21"
+    description: "A cool plugin with a test command!"
+
+// This section creates a custom type, called Handler. We pass one of these handlers to the lifecycle manager
+// that Paper provides us with, and tell it to run the code in the handler when it's ready to register our command.
+// The code then registers the command.
+type Handler:
+    template: LifecycleEventHandler
+    function run (event):
+        parameters: LifecycleEvent
+        return: none
+        trigger:
+            set {registrar} to registrar() of {event}
+            // This command builder is from Minecraft's 'Brigadier' feature, which allows us to define new commands.
+            // The call to literal("foo") declares that our command's name is "foo".
+            set {builder} to literal("foo") of Commands
+
+            // This section is the actual command code. Local variables from the handler can be used here,
+            // but their values are 'frozen' to what they were at the start of this section.
+            set {builder} to executes(a new command (my_context)) of {builder}:
+
+                // 'print' statements go to the server console.
+                print "I have captured the local variable " + {registrar}
+                print "My local context is " + {my_context}
+
+                set {source} to getSource() of {my_context}
+
+                set {location} to getLocation() of {source}
+                set {sender} to getSender() of {source}
+                set {name} to getName() of {sender}
+
+                run sendMessage("Your name is " + toString() of {name} + "!") of {sender}
+                run sendMessage("You are standing on a " + getKey() of getType() of (get_block_below({location}) from skript/blocks) + "!") of {sender}
+
+                // The value '1' in Brigadier represents a successfully executed command.
+                return 1
+
+            // This registers our command with Brigadier.
+            set {command} to build() of {builder}
+            run register({command}) of {registrar}
+
+on enable:
+    trigger:
+        // When the plugin is enabled, we'll ask Paper to register our new Handler
+        // with the lifecycle manager so that our command gets registered when the server
+        // is eventually ready to receive it.
+        set {manager} to getLifecycleManager() of plugin
+        set {handler} to a new Handler
+
+        run registerEventHandler(COMMANDS of LifecycleEvents, {handler}) of {manager}
