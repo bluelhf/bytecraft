@@ -23,17 +23,16 @@ import java.util.List;
             Declares a plugin configuration section. This member is only valid in the root script named 'index.bsk'.
             Within this section, plugin metadata such as name and version may be declared.
             """,
-        examples = {
-                """
-                    plugin:
-                        name: "Example Plugin"
-                        version: "1.0.0"
-                        api-version: "1.21"
-                    """
-        }
+        examples = MemberPlugin.EXAMPLE
 )
 public class MemberPlugin extends Member {
-    public static final Type INDEX_TYPE = new Type("skript.index");
+    public static final String EXAMPLE =
+            """
+            plugin:
+                name: "Example Plugin"
+                version: "1.0.0"
+                api-version: "1.21"
+            """;
 
     public MemberPlugin(final ModifiableLibrary provider) {
         super(provider, StandardElements.MEMBER, "plugin");
@@ -52,11 +51,18 @@ public class MemberPlugin extends Member {
             return null;
         }
 
-        if (!context.getType().equals(INDEX_TYPE)) {
-            context.getError().addHint(this, "The plugin member must be used in " + INDEX_TYPE.internalName() + ", but we found it in " + context.getType().internalName());
+        if (!isIndexType(context.getType())) {
+            context.getError().addHint(this, "The plugin member must be used in a script in <something>/index, but we found it in " + context.getType().internalName());
             return null;
         }
         return super.match(thing, context);
+    }
+
+    private boolean isIndexType(final Type type) {
+        final int slash = type.internalName().indexOf('/');
+        if (slash == -1) return true;
+        final int sub = type.internalName().indexOf('/', slash + 1);
+        return sub == -1 && type.internalName().substring(slash + 1).equals("index");
     }
 
     @Override
