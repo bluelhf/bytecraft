@@ -33,7 +33,7 @@ ByteCraft is a [ByteSkript](https://github.com/Moderocky/ByteSkript) library tha
 
 ## Build Instructions
 
-You must have [git](https://git-scm.com/install/) and [Java 25](https://adoptium.net/temurin/releases/?version=25) installed.
+You must have [git](https://git-scm.com/install/) and [Java 21](https://adoptium.net/temurin/releases/?version=21) or higher installed.
 
 1. Open the Terminal.
 2. Clone the repository using `git clone https://github.com/bluelhf/bytecraft/`
