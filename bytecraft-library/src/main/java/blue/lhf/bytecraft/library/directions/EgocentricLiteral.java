@@ -13,7 +13,11 @@ import static java.util.Locale.ENGLISH;
 @Documentation(
     name = "Egocentric Literal",
     description = """
-        A literal representing an egocentric direction.
+        A literal representing an egocentric direction. Egocentric directions are determined by the facing of the location
+        that they apply to, for example, 'block 1 metre left of getLocation() of {player}' is a different block based on
+        which way the player is looking.
+        
+        Instead of 'above' or 'below', you may mean to use the cardinal directions 'up' and 'down' respectively.
         """,
     examples = {
         """

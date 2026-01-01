@@ -4,6 +4,7 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.context.CommandContext;
 import mx.kenzie.foundation.*;
 import org.byteskript.skript.api.Library;
+import org.byteskript.skript.api.note.Documentation;
 import org.byteskript.skript.api.syntax.ExtractedSection;
 import org.byteskript.skript.compiler.*;
 import org.byteskript.skript.compiler.structure.PreVariable;
@@ -18,6 +19,29 @@ import java.util.regex.Matcher;
 import static java.lang.reflect.Modifier.*;
 import static org.objectweb.asm.Opcodes.H_INVOKESTATIC;
 
+@Documentation(
+        name = "Command Section",
+        description = """
+            Creates a [Brigadier](https://github.com/Mojang/brigadier) command executing some code when run.
+            This command can be passed as a parameter to the `executes()` method of a Brigadier command builder.
+            
+            Command sections accept one parameter, the command context. This parameter is stored in a variable, the name
+            of which is given in parentheses similar to how ByteSkript functions are defined. Only one parameter
+            may be specified.
+            
+            Commands should return an integer describing their result. A value of 1 denotes success.
+            For more details, see the [Custom Plugin example](https://github.com/bluelhf/bytecraft/blob/8a092d265b8283b56f3f76fe82a05f08d383ad7d/examples/plugin/skript/index.bsk)
+            on the bytecraft repository.
+            """,
+        examples = {
+                """
+                set {my_command} to a new command (my_context):
+                    // Sends "Hello, world!" to the executor of the command.
+                    run sendMessage("Hello, world!") of getSender() of getSource() of {my_context}
+                    return 1
+                """
+        }
+)
 public class ExprCommandSection extends ExtractedSection {
     private static final java.util.regex.Pattern PATTERN = java.util.regex.Pattern.compile("a? new command ?\\((?<param>" + SkriptLangSpec.IDENTIFIER.pattern() + ")\\)");
 

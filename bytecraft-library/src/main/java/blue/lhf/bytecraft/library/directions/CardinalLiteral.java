@@ -14,7 +14,7 @@ import static org.bukkit.block.BlockFace.*;
 @Documentation(
     name = "Cardinal Literal",
     description = """
-        A literal representing a cardinal direction.
+        A literal representing a cardinal direction. Valid values are north, east, south, west, up, and down.
         """,
     examples = {
         """
