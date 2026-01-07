@@ -19,7 +19,7 @@ ByteCraft is a [ByteSkript](https://github.com/Moderocky/ByteSkript) library tha
 3. Place your scripts in the project's `skript/` directory. You may use this as an example:
    ```applescript
     plugin:
-        name: Test Plugin
+        name: TestPlugin
         version: 1.0.0
     on load:
         trigger:
