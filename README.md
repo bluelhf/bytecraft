@@ -15,8 +15,8 @@ ByteCraft is a [ByteSkript](https://github.com/Moderocky/ByteSkript) library tha
 ## Installation
 
 1. Download [the latest bootstrap](http://maven.lhf.blue/api/maven/latest/file/snapshots/blue/lhf/bytecraft/bytecraft-bootstrap).
-3. Move the bootstrap JAR to your ByteSkript project's `libraries/` directory.
-4. Place your scripts in the project's `skript/` directory. You may use this as an example:
+2. Move the bootstrap JAR to your ByteSkript project's `libraries/` directory.
+3. Place your scripts in the project's `skript/` directory. You may use this as an example:
    ```applescript
     plugin:
         name: Test Plugin
@@ -26,14 +26,22 @@ ByteCraft is a [ByteSkript](https://github.com/Moderocky/ByteSkript) library tha
             print "Hello from Test!"
             print "The server is on version " + getBukkitVersion() of the server
     ```
-5. Run ByteSkript as normal: `java -jar ByteSkript-<VERSION>.jar jar` (a total of three `jar`s)
-6. Get your plugin from `compiled/CompiledScripts.jar` and place it in your server's `plugins/` folder
-7. Restart your server
-8. Enjoy!
+4. Run ByteSkript as normal: `java -jar ByteSkript-<VERSION>.jar jar` (a total of three `jar`s)
+5. Get your plugin from `compiled/CompiledScripts.jar` and place it in your server's `plugins/` folder
+6. Restart your server
+7. Enjoy!
 
 ## Build Instructions
 
 You must have [git](https://git-scm.com/install/) and [Java 21](https://adoptium.net/temurin/releases/?version=21) or higher installed.
+
+> [!Warning]
+> Currently (2026-01-07), compilation using these steps does not work
+> because ByteCraft depends on features which are yet unreleased
+> in ByteSkript. To build using these instrcutions, you must first
+> build and install Mirror 5.0.5 and ByteSkript 1.0.41 by compiling
+> [my fork of Mirror](https://github.com/bluelhf/Mirror) and [my fork of ByteSkript](https://github.com/bluelhf/ByteSkript)
+> using `mvn source:jar install`
 
 1. Open the Terminal.
 2. Clone the repository using `git clone https://github.com/bluelhf/bytecraft/`
