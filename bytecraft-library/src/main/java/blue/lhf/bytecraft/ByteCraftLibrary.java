@@ -2,6 +2,7 @@ package blue.lhf.bytecraft;
 
 import blue.lhf.bytecraft.library.*;
 import blue.lhf.bytecraft.library.commands.ExprCommandSection;
+import blue.lhf.bytecraft.library.commands.tree.MemberCommand;
 import blue.lhf.bytecraft.library.directions.CardinalLiteral;
 import blue.lhf.bytecraft.library.directions.EgocentricLiteral;
 import blue.lhf.bytecraft.library.events.EventEnable;
@@ -43,7 +44,7 @@ public class ByteCraftLibrary extends ModifiableLibrary implements BytecraftProv
                 new ExprWorld(this),
                 new ExprCommandSection(this));
 
-        registerSyntax(CompileState.ROOT, new MemberPlugin(this), new EventEnable());
+        registerSyntax(CompileState.ROOT, new MemberPlugin(this), new EventEnable(), new MemberCommand(this));
 
         registerSyntax(CompileState.MEMBER_BODY,
                 new EntryName(this),

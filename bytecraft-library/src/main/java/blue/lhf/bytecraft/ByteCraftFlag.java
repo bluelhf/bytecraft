@@ -1,5 +1,6 @@
 package blue.lhf.bytecraft;
 
+import blue.lhf.bytecraft.library.commands.tree.MemberCommand;
 import blue.lhf.bytecraft.library.plugin_hook.description.EntryName;
 import blue.lhf.bytecraft.library.plugin_hook.description.MemberPlugin;
 import org.byteskript.skript.api.Flag;
@@ -15,6 +16,10 @@ public enum ByteCraftFlag implements Flag {
     /**
      * Flag that is set if {@link MemberPlugin} is ever used, so that it may only be used once.
      * */
-    HAS_PLUGIN_MEMBER
+    HAS_PLUGIN_MEMBER,
+    /**
+     * Flag that is set when inside a {@link MemberCommand} tree. Allows related entries, e.g. {@link EntryExecutes} to be used.
+     * */
+    IN_COMMAND_MEMBER,
     ;
 }
