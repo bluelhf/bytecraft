@@ -7,6 +7,7 @@ import org.byteskript.skript.api.Library;
 import org.byteskript.skript.api.note.Documentation;
 import org.byteskript.skript.api.syntax.TriggerHolder;
 import org.byteskript.skript.compiler.*;
+import org.byteskript.skript.compiler.structure.PreVariable;
 import org.byteskript.skript.compiler.structure.SectionMeta;
 import org.byteskript.skript.lang.element.StandardElements;
 import org.byteskript.skript.runtime.data.EventData;
@@ -70,6 +71,9 @@ public class MemberCommand extends TriggerHolder {
         context.addFlag(IN_COMMAND_MEMBER);
         context.setState(MEMBER_BODY);
         final CommandDetails details = match.meta();
+        final PreVariable contextVariable = new PreVariable(details.contextVariable());
+        contextVariable.parameter = true;
+        context.forceUnspecVariable(contextVariable);
         context.getSection().getData().add(new CommandData(details));
         // TODO(ilari): make trigger section not clear trees above it and replace section metadata with tree
     }
@@ -83,6 +87,11 @@ public class MemberCommand extends TriggerHolder {
     @Override
     public Type returnType(final Context context, final Pattern.Match match) {
         return CommonTypes.INTEGER;
+    }
+
+    @Override
+    public Type[] parameters(final Context context, final Matcher match) {
+        return new Type[]{new Type("com.mojang.brigadier.context.CommandContext")};
     }
 
     @Override
