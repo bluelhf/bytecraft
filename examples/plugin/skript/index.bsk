@@ -10,7 +10,7 @@ dictionary:
 // Only one 'plugin' section can exist in a script, and the script must be called index.bsk for it to work.
 // These values are written to the plugin.yml that ends up in the final .JAR file.
 plugin:
-    name: "Example Plugin"
+    name: "ExamplePlugin"
     version: "1.0.0"
     api-version: "1.21"
     description: "A cool plugin with a test command!"
