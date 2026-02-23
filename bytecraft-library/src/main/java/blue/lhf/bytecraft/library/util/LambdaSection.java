@@ -65,8 +65,11 @@ public abstract class LambdaSection extends ExtractedSection {
         final Type[] capturedLocals = new Type[context.getVariableCount()];
         for (int i = 0; i < capturedLocals.length; i++) {
             lambdaBody.addParameter(Object.class);
+            capturedLocals[i] = context.getVariable(i).getType();
             context.getMethod().writeCode(context.getVariable(i).load(i));
         }
+
+        final MethodErasure factorySignature = new MethodErasure(getReturnType(), lambdaName, capturedLocals);
 
         final MethodErasure methodSignature = getMethodSignature(context, match);
         final MethodErasure runtimeMethodSignature = getRuntimeMethodSignature(context, match);
@@ -88,7 +91,7 @@ public abstract class LambdaSection extends ExtractedSection {
 
         final String containingClassName = lambdaBody.finish().getInternalName();
         context.getMethod().writeCode((method, visitor) -> visitor.visitInvokeDynamicInsn(
-                methodSignature.name(), methodSignature.getDescriptor(),
+                factorySignature.name(), factorySignature.getDescriptor(),
                 new Handle(H_INVOKESTATIC,
                         new Type(LambdaMetafactory.class).internalName(),
                         metafactorySignature.name(),
