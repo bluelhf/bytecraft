@@ -52,7 +52,7 @@ import java.util.stream.Collectors;
 public class MemberArgument extends TriggerHolder {
     enum MemberType {
         INTEGER(java.util.regex.Pattern.compile("int(?:eger)?")),
-        STRING(java.util.regex.Pattern.compile("string"));
+        STRING(java.util.regex.Pattern.compile("string|text"));
 
         private final java.util.regex.Pattern pattern;
 
