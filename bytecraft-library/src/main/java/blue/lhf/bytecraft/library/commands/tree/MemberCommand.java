@@ -74,8 +74,15 @@ public class MemberCommand extends TriggerHolder {
         final PreVariable contextVariable = new PreVariable(details.contextVariable());
         contextVariable.parameter = true;
         context.forceUnspecVariable(contextVariable);
-        context.getSection().getData().add(new CommandData(details));
-        // TODO(ilari): make trigger section not clear trees above it and replace section metadata with tree
+
+        final CommandData data = new CommandData(CommandNode.literal(null,
+                details.name(),
+                (method, builder) -> {
+                    WriteInstruction.invokeStatic(context.getBuilder().getType(), returnType(context, match), callSiteName(context, match), parameters(context, match.matcher())).accept(method, builder);
+                    WriteInstruction.invokeVirtual(CommonTypes.INTEGER, new Type(int.class), "intValue").accept(method, builder);
+                }), details.contextVariable());
+
+        context.getSection().getData().add(data);
     }
 
     @Override
@@ -123,9 +130,10 @@ public class MemberCommand extends TriggerHolder {
                 WriteInstruction.invokeInterface(new Type("io.papermc.paper.plugin.lifecycle.event.registrar.RegistrarEvent"),
                         new Type("io.papermc.paper.plugin.lifecycle.event.registrar.Registrar"), "registrar"),
 
-                // wow, we have a registrar on the stack!
-                WriteInstruction.throwErrorMessage("Not implemented"),
-                WriteInstruction.pop(),
+                data.getRoot().build(context.getBuilder()),
+                WriteInstruction.cast(new Type("com.mojang.brigadier.builder.LiteralArgumentBuilder")),
+                WriteInstruction.invokeVirtual(new Type("com.mojang.brigadier.builder.LiteralArgumentBuilder"), new Type("com.mojang.brigadier.tree.LiteralCommandNode"), "build"),
+                WriteInstruction.invokeInterface(new Type("io.papermc.paper.command.brigadier.Commands"), new Type("java.util.Set"), "register", new Type("com.mojang.brigadier.tree.LiteralCommandNode")),
                 WriteInstruction.returnEmpty()
         );
 
@@ -138,7 +146,7 @@ public class MemberCommand extends TriggerHolder {
 
         final String containingClassName = lambdaBody.finish().getInternalName();
 
-        context.getBuilder().addMethod("registerCommand$" + data.getDetails().name())
+        context.getBuilder().addMethod("registerCommand$" + data.getRoot().label())
                 .addModifiers(PUBLIC, STATIC).setReturnType(new Type(void.class))
                 .addAnnotation(EventData.class).setVisible(true)
                 .addValue("name", name())
@@ -170,5 +178,13 @@ public class MemberCommand extends TriggerHolder {
                                 Type.of("io/papermc/paper/plugin/lifecycle/event/types/LifecycleEventType"),
                                 Type.of("io/papermc/paper/plugin/lifecycle/event/handler/LifecycleEventHandler"))
                 ).writeCode(WriteInstruction.returnEmpty());
+    }
+
+    /**
+     * Details about the registration of a command, such as its name and the variable associated with its context.
+     * @param name The name of the command, e.g. "foo" for <code>/foo</code>.
+     * @param contextVariable The name of the command's context variable, e.g. "my_context" for a command defined as <code>command foo (my_context):</code>
+     * */
+    private record CommandDetails(String name, String contextVariable) {
     }
 }
