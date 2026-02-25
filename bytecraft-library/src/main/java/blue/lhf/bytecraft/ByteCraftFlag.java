@@ -1,6 +1,7 @@
 package blue.lhf.bytecraft;
 
-import blue.lhf.bytecraft.library.commands.tree.MemberCommand;
+import blue.lhf.bytecraft.library.commands.MemberArgument;
+import blue.lhf.bytecraft.library.commands.MemberCommand;
 import blue.lhf.bytecraft.library.plugin_hook.description.EntryName;
 import blue.lhf.bytecraft.library.plugin_hook.description.MemberPlugin;
 import org.byteskript.skript.api.Flag;
@@ -18,7 +19,7 @@ public enum ByteCraftFlag implements Flag {
      * */
     HAS_PLUGIN_MEMBER,
     /**
-     * Flag that is set when inside a {@link MemberCommand} tree. Allows related entries, e.g. {@link EntryExecutes} to be used.
+     * Flag that is set when inside a {@link MemberCommand} tree. Allows related entries, e.g. {@link MemberArgument} to be used.
      * */
     IN_COMMAND_MEMBER,
     ;
