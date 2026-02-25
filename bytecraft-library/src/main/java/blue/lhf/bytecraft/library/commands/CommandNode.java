@@ -37,6 +37,12 @@ public sealed interface CommandNode permits CommandNode.Argument, CommandNode.Li
      * @return A mutable {@link Set} of all the children of this node.
      * */
     Set<CommandNode> children();
+    /**
+     * The label for this node. For arguments, this will be the variable name for the argument value. For literals,
+     * this will be the literal text in the command.
+     * @return The label
+     * */
+    String label();
 
     /**
      * Adds a child to this node's children. Shorthand for calling {@link Set#add(Object)} on {@link CommandNode#children()}
@@ -191,12 +197,6 @@ public sealed interface CommandNode permits CommandNode.Argument, CommandNode.Li
         CommandNode parent();
 
         /**
-         * The variable name of this argument as referenced in the command's {@link CommandContext}.
-         * @return The argument's variable name.
-         */
-        String variable();
-
-        /**
          * Emits code that pulls this argument's value from the provided {@link CommandContext} at runtime.
          * The generated code loads the argument name and expected class, then calls
          * {@code CommandContext#getArgument(name, clazz)} and leaves the raw value on the stack.
@@ -204,7 +204,7 @@ public sealed interface CommandNode permits CommandNode.Argument, CommandNode.Li
          */
         default WriteInstruction loader() {
             return (method, builder) -> {
-                WriteInstruction.loadConstant(variable()).accept(method, builder);
+                WriteInstruction.loadConstant(label()).accept(method, builder);
                 WriteInstruction.loadClassConstant(argumentClass()).accept(method, builder);
                 WriteInstruction.invokeVirtual(Type.of("com/mojang/brigadier/context/CommandContext"),
                         CommonTypes.OBJECT, "getArgument", CommonTypes.STRING, CommonTypes.CLASS).accept(method, builder);
@@ -237,7 +237,7 @@ public sealed interface CommandNode permits CommandNode.Argument, CommandNode.Li
         @Override
         default WriteInstruction nodeBuilder() {
             return (method, builder) -> {
-                WriteInstruction.loadConstant(variable()).accept(method, builder);
+                WriteInstruction.loadConstant(label()).accept(method, builder);
                 argumentTypeResolver().accept(method, builder);
                 WriteInstruction.invokeStatic(
                         true,
@@ -308,11 +308,11 @@ public sealed interface CommandNode permits CommandNode.Argument, CommandNode.Li
      * A command node that captures a string value from the input (e.g. a player name).
      * @param parent the node that precedes this one in the command tree
      * @param children the mutable set of child nodes
-     * @param variable the argument's variable name used to retrieve its value from the {@link CommandContext}
+     * @param label the argument's variable name used to retrieve its value from the {@link CommandContext}
      * @param executorWithArguments the body to execute when this node is the terminal of the invoked command; it
      *                              expects all prior arguments (including this one) to be on the operand stack
      */
-    record StringArgument(@NotNull CommandNode parent, Set<CommandNode> children, String variable, WriteInstruction executorWithArguments) implements Argument {
+    record StringArgument(@NotNull CommandNode parent, Set<CommandNode> children, String label, WriteInstruction executorWithArguments) implements Argument {
         @Override
         public Type argumentClass() {
             return CommonTypes.STRING;
@@ -327,7 +327,7 @@ public sealed interface CommandNode permits CommandNode.Argument, CommandNode.Li
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(children, variable, executorWithArguments);
+            return Objects.hashCode(children, label, executorWithArguments);
         }
     }
 
@@ -335,11 +335,11 @@ public sealed interface CommandNode permits CommandNode.Argument, CommandNode.Li
      * A command node that captures an integer value from the input (e.g. an amount).
      * @param parent the node that precedes this one in the command tree
      * @param children the mutable set of child nodes
-     * @param variable the argument's variable name used to retrieve its value from the {@link CommandContext}
+     * @param label the argument's variable name used to retrieve its value from the {@link CommandContext}
      * @param executorWithArguments the body to execute when this node is the terminal of the invoked command; it
      *                              expects all prior arguments (including this one) to be on the operand stack
      */
-    record IntegerArgument(@NotNull CommandNode parent, Set<CommandNode> children, String variable, WriteInstruction executorWithArguments) implements Argument {
+    record IntegerArgument(@NotNull CommandNode parent, Set<CommandNode> children, String label, WriteInstruction executorWithArguments) implements Argument {
         @Override
         public Type argumentClass() {
             return new Type(Integer.class);
@@ -352,7 +352,7 @@ public sealed interface CommandNode permits CommandNode.Argument, CommandNode.Li
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(children, variable, executorWithArguments);
+            return Objects.hashCode(children, label, executorWithArguments);
         }
     }
 }
