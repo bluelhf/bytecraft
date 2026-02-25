@@ -302,6 +302,11 @@ public sealed interface CommandNode permits CommandNode.Argument, CommandNode.Li
         public int hashCode() {
             return Objects.hashCode(children, label, target);
         }
+
+        @Override
+        public @NotNull String toString() {
+            return "Literal(" + label + "[" + children + "])";
+        }
     }
 
     /**
@@ -329,6 +334,11 @@ public sealed interface CommandNode permits CommandNode.Argument, CommandNode.Li
         public int hashCode() {
             return Objects.hashCode(children, label, executorWithArguments);
         }
+
+        @Override
+        public @NotNull String toString() {
+            return "StringArgument(" + label + "[" + children + "] -> " + System.identityHashCode(executorWithArguments) + ")";
+        }
     }
 
     /**
@@ -353,6 +363,11 @@ public sealed interface CommandNode permits CommandNode.Argument, CommandNode.Li
         @Override
         public int hashCode() {
             return Objects.hashCode(children, label, executorWithArguments);
+        }
+
+        @Override
+        public @NotNull String toString() {
+            return "IntegerArgument(" + label + "[" + children + "] -> " + System.identityHashCode(executorWithArguments) + ")";
         }
     }
 }
