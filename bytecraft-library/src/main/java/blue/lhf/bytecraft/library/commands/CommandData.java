@@ -1,4 +1,4 @@
-package blue.lhf.bytecraft.library.commands.tree;
+package blue.lhf.bytecraft.library.commands;
 
 import org.byteskript.skript.compiler.structure.BasicTree;
 import org.byteskript.skript.compiler.structure.SectionMeta;

@@ -1,4 +1,4 @@
-package blue.lhf.bytecraft.library.commands.tree;
+package blue.lhf.bytecraft.library.commands;
 
 
 import com.google.common.base.Objects;

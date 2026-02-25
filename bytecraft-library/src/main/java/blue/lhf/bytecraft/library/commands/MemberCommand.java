@@ -1,4 +1,4 @@
-package blue.lhf.bytecraft.library.commands.tree;
+package blue.lhf.bytecraft.library.commands;
 
 import blue.lhf.bytecraft.runtime.BukkitHook;
 import blue.lhf.bytecraft.runtime.Enable;
