@@ -1,9 +1,7 @@
 package blue.lhf.bytecraft;
 
 import blue.lhf.bytecraft.library.*;
-import blue.lhf.bytecraft.library.commands.ExprCommandSection;
-import blue.lhf.bytecraft.library.commands.tree.MemberArgument;
-import blue.lhf.bytecraft.library.commands.tree.MemberCommand;
+import blue.lhf.bytecraft.library.commands.*;
 import blue.lhf.bytecraft.library.directions.CardinalLiteral;
 import blue.lhf.bytecraft.library.directions.EgocentricLiteral;
 import blue.lhf.bytecraft.library.events.EventEnable;
@@ -52,7 +50,8 @@ public class ByteCraftLibrary extends ModifiableLibrary implements BytecraftProv
                 new EntryVersion(this),
                 new EntryApiVersion(this),
                 new EntryDescription(this),
-                new MemberArgument(this));
+                new MemberArgument(this),
+                new MemberSubcommand(this));
 
         registerTypes(
                 Location.class, Block.class, CommandSourceStack.class,
