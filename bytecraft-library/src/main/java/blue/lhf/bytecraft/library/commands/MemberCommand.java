@@ -11,10 +11,14 @@ import org.byteskript.skript.compiler.structure.PreVariable;
 import org.byteskript.skript.compiler.structure.SectionMeta;
 import org.byteskript.skript.lang.element.StandardElements;
 import org.byteskript.skript.runtime.data.EventData;
+import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.Handle;
 
 import java.lang.invoke.*;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 
 import static blue.lhf.bytecraft.ByteCraftFlag.IN_COMMAND_MEMBER;
@@ -56,6 +60,16 @@ public class MemberCommand extends TriggerHolder {
         super(provider, StandardElements.MEMBER, "command(...)");
     }
 
+    public static String callSiteFor(final CommandNode commandNode) {
+        CommandNode current = commandNode;
+        final StringBuilder builder = new StringBuilder();
+        while (current != null) {
+            builder.insert(0, current.label() + "$");
+            current = current.parent();
+        }
+        return "command$callSite$" + builder.substring(0, builder.length() - 1);
+    }
+
     @Override
     public Pattern.Match match(final String thing, final Context context) {
         final Matcher matcher = PATTERN.matcher(thing);
@@ -65,9 +79,16 @@ public class MemberCommand extends TriggerHolder {
         } else return null;
     }
 
+    @NotNull
+    static CommandData getCommandData(final SectionMeta meta) {
+        return meta.getData().stream()
+                .filter(CommandData.class::isInstance)
+                .map(CommandData.class::cast).findFirst()
+                .orElseThrow();
+    }
+
     @Override
     public void compile(final Context context, final Pattern.Match match) {
-        super.compile(context, match);
         context.addFlag(IN_COMMAND_MEMBER);
         context.setState(MEMBER_BODY);
         final CommandDetails details = match.meta();
@@ -75,20 +96,23 @@ public class MemberCommand extends TriggerHolder {
         contextVariable.parameter = true;
         context.forceUnspecVariable(contextVariable);
 
+        final AtomicReference<WriteInstruction> deferredWrite = new AtomicReference<>();
         final CommandData data = new CommandData(CommandNode.literal(null,
-                details.name(),
-                (method, builder) -> {
-                    WriteInstruction.invokeStatic(context.getBuilder().getType(), returnType(context, match), callSiteName(context, match), parameters(context, match.matcher())).accept(method, builder);
-                    WriteInstruction.invokeVirtual(CommonTypes.INTEGER, new Type(int.class), "intValue").accept(method, builder);
-                }), details.contextVariable());
+                details.name(), (method, builder) -> deferredWrite.get().accept(method, builder)), details.contextVariable());
 
         context.getSection().getData().add(data);
+        final MethodErasure signature = new MethodErasure(returnType(context, match), callSiteName(context, match), parameters(context, match.matcher()));
+        deferredWrite.set((method, builder) -> {
+            WriteInstruction.invokeStatic(context.getBuilder().getType(), signature).accept(method, builder);
+            WriteInstruction.invokeVirtual(CommonTypes.INTEGER, new Type(int.class), "intValue").accept(method, builder);
+        });
+        super.compile(context, match);
     }
 
     @Override
     public String callSiteName(final Context context, final Pattern.Match match) {
-        final CommandDetails details = match.meta();
-        return "command_root_trigger$" + details.name();
+        final CommandData data = getCommandData(context.getSection());
+        return MemberCommand.callSiteFor(data.currentNode());
     }
 
     @Override
@@ -180,10 +204,28 @@ public class MemberCommand extends TriggerHolder {
                 ).writeCode(WriteInstruction.returnEmpty());
     }
 
+    public static Type[] buildParameters(final CommandNode node) {
+        final List<Type> parameters = new ArrayList<>();
+        parameters.add(new Type("com.mojang.brigadier.context.CommandContext"));
+        for (final CommandNode.Argument argument : node.arguments())
+            parameters.add(argument.argumentClass());
+
+        return parameters.toArray(Type[]::new);
+    }
+
+    public static Type[] buildParameters(final CommandNode parent, final Type argument) {
+        final List<Type> parameters = new ArrayList<>();
+        parameters.add(new Type("com.mojang.brigadier.context.CommandContext"));
+        for (final CommandNode.Argument sub : parent.arguments())
+            parameters.add(sub.argumentClass());
+        parameters.add(argument);
+        return parameters.toArray(Type[]::new);
+    }
+
     /**
-     * Details about the registration of a command, such as its name and the variable associated with its context.
+     * Details about the registration of a command, such as its name and the label associated with its context.
      * @param name The name of the command, e.g. "foo" for <code>/foo</code>.
-     * @param contextVariable The name of the command's context variable, e.g. "my_context" for a command defined as <code>command foo (my_context):</code>
+     * @param contextVariable The name of the command's context label, e.g. "my_context" for a command defined as <code>command foo (my_context):</code>
      * */
     private record CommandDetails(String name, String contextVariable) {
     }

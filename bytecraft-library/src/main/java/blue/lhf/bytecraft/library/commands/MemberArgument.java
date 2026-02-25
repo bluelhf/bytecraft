@@ -1,8 +1,7 @@
 package blue.lhf.bytecraft.library.commands;
 
 import blue.lhf.bytecraft.ByteCraftFlag;
-import mx.kenzie.foundation.Type;
-import mx.kenzie.foundation.WriteInstruction;
+import mx.kenzie.foundation.*;
 import org.byteskript.skript.api.Library;
 import org.byteskript.skript.api.note.Documentation;
 import org.byteskript.skript.api.syntax.TriggerHolder;
@@ -10,9 +9,9 @@ import org.byteskript.skript.compiler.*;
 import org.byteskript.skript.compiler.structure.PreVariable;
 import org.byteskript.skript.compiler.structure.SectionMeta;
 import org.byteskript.skript.lang.element.StandardElements;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
@@ -72,8 +71,8 @@ public class MemberArgument extends TriggerHolder {
 
     @Override
     public String callSiteName(final Context context, final Pattern.Match match) {
-        final ArgumentDetails details = match.meta();
-        return "command_arg_trigger$" + details.param();
+        final CommandData data = MemberCommand.getCommandData(context.getSection());
+        return MemberCommand.callSiteFor(data.currentNode());
     }
 
     @Override
@@ -84,24 +83,8 @@ public class MemberArgument extends TriggerHolder {
     @Override
     public Type[] parameters(final Context context, final Matcher match) {
         assert context.getParent() == this;
-        final CommandData data = getCommandData(context.getSection());
-        if (!(data.currentNode() instanceof final CommandNode.Argument argument))
-            throw new IllegalStateException("Current node was not an argument when building parameters of argument method");
-        return buildParameters(data.currentNode().parent(), argument.argumentClass());
-    }
-
-    // Builds the parameter array for the trigger section based on command arguments thus far
-    private Type[] buildParameters(final CommandNode parent, final Type parameterType) {
-        final List<Type> parameters = new ArrayList<>();
-        parameters.add(parameterType);
-        CommandNode current = parent;
-        while (current != null) {
-            if (current instanceof final CommandNode.Argument currentArgument)
-                parameters.add(currentArgument.argumentClass());
-            current = current.parent();
-        }
-        parameters.add(new Type("com.mojang.brigadier.context.CommandContext"));
-        return parameters.reversed().toArray(Type[]::new);
+        final CommandData data = MemberCommand.getCommandData(context.getSection());
+        return MemberCommand.buildParameters(data.currentNode());
     }
 
     @Override
@@ -142,33 +125,33 @@ public class MemberArgument extends TriggerHolder {
 
         // Propagate CommandData up across argument sections
         // (a Tree would work, but they are closed prematurely by TriggerSection#onSectionExit)
-        final CommandData data = getCommandData(context.getSection(1));
+        final CommandData data = MemberCommand.getCommandData(context.getSection(1));
         context.getSection(0).getData().add(data);
 
-        final Type[] parameters = buildParameters(data.currentNode(), switch (details.type()) {
-            case INTEGER -> CommonTypes.INTEGER;
-            case STRING -> CommonTypes.STRING;
-        });
+        final AtomicReference<WriteInstruction> deferredCall = new AtomicReference<>();
 
         final CommandNode.Argument node = switch (details.type()) {
             case INTEGER -> CommandNode.integerArgument(data.currentNode(), details.param(), (method, builder) -> {
-                WriteInstruction.invokeStatic(context.getBuilder().getType(), returnType(context, match), callSiteName(context, match), parameters).accept(method, builder);
+                deferredCall.get().accept(method, builder);
                 WriteInstruction.invokeVirtual(CommonTypes.INTEGER, new Type(int.class), "intValue").accept(method, builder);
             });
             case STRING -> CommandNode.stringArgument(data.currentNode(), details.param(), (method, builder) -> {
-                WriteInstruction.invokeStatic(context.getBuilder().getType(), returnType(context, match), callSiteName(context, match), parameters).accept(method, builder);
+                deferredCall.get().accept(method, builder);
                 WriteInstruction.invokeVirtual(CommonTypes.INTEGER, new Type(int.class), "intValue").accept(method, builder);
             });
         };
 
         data.enterNode(node);
 
+        final MethodErasure signature = new MethodErasure(returnType(context, match), callSiteName(context, match), parameters(context, match.matcher()));
+        deferredCall.set(WriteInstruction.invokeStatic(context.getBuilder().getType(), signature));
+
         final PreVariable contextVariable = new PreVariable(data.getContextVariable());
         contextVariable.parameter = true;
         context.forceUnspecVariable(contextVariable);
 
         for (final CommandNode.Argument argument : node.arguments()) {
-            final PreVariable variable = new PreVariable(argument.variable());
+            final PreVariable variable = new PreVariable(argument.label());
             variable.parameter = true;
             context.forceUnspecVariable(variable);
         }
@@ -177,16 +160,10 @@ public class MemberArgument extends TriggerHolder {
         super.compile(context, match);
     }
 
-    private @NotNull CommandData getCommandData(final SectionMeta meta) {
-        return meta.getData().stream()
-                .filter(CommandData.class::isInstance)
-                .map(CommandData.class::cast).findFirst()
-                .orElseThrow();
-    }
-
     @Override
     public void onSectionExit(final Context context, final SectionMeta meta) {
-        getCommandData(context.getSection()).exitNode();
+        MemberCommand.getCommandData(meta).exitNode();
         super.onSectionExit(context, meta);
+        context.setState(CompileState.MEMBER_BODY);
     }
 }
