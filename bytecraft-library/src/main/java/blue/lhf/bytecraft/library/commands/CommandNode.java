@@ -47,6 +47,24 @@ public sealed interface CommandNode permits CommandNode.Argument, CommandNode.Li
     }
 
     /**
+     * Collects the chain of {@link Argument} nodes from the root to this node (inclusive),
+     * preserving their evaluation order.
+     * @return An array of arguments in the order they appear in the command.
+     */
+    default Argument[] arguments() {
+        final List<Argument> arguments = new ArrayList<>();
+        CommandNode current = this;
+        while (current != null) {
+            if (current instanceof final Argument argument)
+                arguments.add(argument);
+
+            current = current.parent();
+        }
+
+        return arguments.reversed().toArray(new Argument[0]);
+    }
+
+    /**
      * A segment of code that consumes a {@link CommandContext} from the operand stack, executes the body
      * of the node, and pushes onto the stack an integer such as {@link Command#SINGLE_SUCCESS} representing the result.
      * <p>
@@ -177,24 +195,6 @@ public sealed interface CommandNode permits CommandNode.Argument, CommandNode.Li
          * @return The argument's variable name.
          */
         String variable();
-
-        /**
-         * Collects the chain of {@link Argument} nodes from the root to this node (inclusive),
-         * preserving their evaluation order.
-         * @return An array of arguments in the order they appear in the command.
-         */
-        default Argument[] arguments() {
-            final List<Argument> arguments = new ArrayList<>();
-            CommandNode current = this;
-            while (current != null) {
-                if (current instanceof final Argument argument)
-                    arguments.add(argument);
-
-                current = current.parent();
-            }
-
-            return arguments.reversed().toArray(new Argument[0]);
-        }
 
         /**
          * Emits code that pulls this argument's value from the provided {@link CommandContext} at runtime.
