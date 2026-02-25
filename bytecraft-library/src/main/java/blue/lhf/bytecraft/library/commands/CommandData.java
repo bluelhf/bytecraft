@@ -15,8 +15,6 @@ public class CommandData {
     /** The root literal node for this command (e.g. the node representing "/foo"). */
     private final CommandNode.Literal rootNode;
 
-    /** Tracks the parent one level up the tree when descending into child sections. */
-    private CommandNode previousParent;
     /** The node that newly declared children should be attached to. */
     private CommandNode currentParent;
     /** The name of the command context variable provided to triggers in this command. */
@@ -29,7 +27,6 @@ public class CommandData {
      */
     public CommandData(final CommandNode.Literal root, final String contextVariable) {
         this.rootNode = root;
-        this.previousParent = null;
         this.currentParent = root;
         this.contextVariable = contextVariable;
     }
@@ -41,7 +38,6 @@ public class CommandData {
      */
     public void enterNode(final CommandNode node) {
         this.currentParent.addChild(node);
-        this.previousParent = currentParent;
         this.currentParent = node;
     }
 
@@ -49,7 +45,7 @@ public class CommandData {
      * Moves back up one level in the command tree so that new nodes are attached to the previous parent.
      */
     public void exitNode() {
-        this.currentParent = this.previousParent;
+        this.currentParent = this.currentParent.parent();
     }
 
     /**
