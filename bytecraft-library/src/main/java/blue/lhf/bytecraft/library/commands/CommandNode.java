@@ -212,7 +212,7 @@ public sealed interface CommandNode permits CommandNode.Argument, CommandNode.Li
         }
 
         /**
-         * Emits code that prepares all previously-declared arguments for this node, then invokes
+         * Emits code that prepares all previously declared arguments for this node, then invokes
          * {@link #executorWithArguments()} to run the user-provided body. The generated code:
          * - Duplicates the {@link CommandContext} reference for each argument in order from root to this node.
          * - Loads and casts each argument value using {@link #loader()} and {@link #argumentClass()}.
