@@ -213,15 +213,6 @@ public class MemberCommand extends TriggerHolder {
         return parameters.toArray(Type[]::new);
     }
 
-    public static Type[] buildParameters(final CommandNode parent, final Type argument) {
-        final List<Type> parameters = new ArrayList<>();
-        parameters.add(new Type("com.mojang.brigadier.context.CommandContext"));
-        for (final CommandNode.Argument sub : parent.arguments())
-            parameters.add(sub.argumentClass());
-        parameters.add(argument);
-        return parameters.toArray(Type[]::new);
-    }
-
     /**
      * Details about the registration of a command, such as its name and the label associated with its context.
      * @param name The name of the command, e.g. "foo" for <code>/foo</code>.
