@@ -8,6 +8,7 @@ import blue.lhf.bytecraft.library.events.EventEnable;
 import blue.lhf.bytecraft.library.plugin_hook.description.*;
 import blue.lhf.bytecraft.runtime.Egocentric;
 import blue.lhf.bytecraft.runtime.RuntimeCollector;
+import blue.lhf.bytecraft.runtime.events.CommandEvent;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -43,7 +44,7 @@ public class ByteCraftLibrary extends ModifiableLibrary implements BytecraftProv
                 new ExprWorld(this),
                 new ExprCommandSection(this));
 
-        registerSyntax(CompileState.ROOT, new MemberPlugin(this), new EventEnable(), new MemberCommand(this));
+        registerSyntax(CompileState.ROOT, new MemberPlugin(this), new MemberCommand(this));
 
         registerSyntax(CompileState.MEMBER_BODY,
                 new EntryName(this),
@@ -56,6 +57,8 @@ public class ByteCraftLibrary extends ModifiableLibrary implements BytecraftProv
         registerTypes(
                 Location.class, Block.class, CommandSourceStack.class,
                 World.class, BlockFace.class, Egocentric.class);
+
+        registerEvents(new EventEnable(this), new CommandEvent.Holder(this));
 
         runtime.addAll(RuntimeCollector.collectRuntime(
                 ByteCraftLibrary.class.getProtectionDomain(),

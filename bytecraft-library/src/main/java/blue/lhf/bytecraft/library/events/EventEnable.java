@@ -1,10 +1,10 @@
 package blue.lhf.bytecraft.library.events;
 
-import blue.lhf.bytecraft.runtime.Enable;
+import blue.lhf.bytecraft.runtime.events.EnableEvent;
 import org.byteskript.skript.api.Event;
+import org.byteskript.skript.api.Library;
 import org.byteskript.skript.api.note.Documentation;
 import org.byteskript.skript.api.syntax.EventHolder;
-import org.byteskript.skript.compiler.SkriptLangSpec;
 
 @Documentation(
         name = "Enable",
@@ -18,13 +18,13 @@ import org.byteskript.skript.compiler.SkriptLangSpec;
         }
 )
 public class EventEnable extends EventHolder {
-    public EventEnable() {
-        super(SkriptLangSpec.LIBRARY, "on [plugin] enable");
+    public EventEnable(final Library provider) {
+        super(provider, "on [plugin] enable");
     }
 
     @Override
     public Class<? extends Event> eventClass() {
-        return Enable.class;
+        return EnableEvent.class;
     }
 }
 
