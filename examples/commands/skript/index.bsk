@@ -1,0 +1,22 @@
+plugin:
+    name: "CommandsPlugin"
+    version: "1.0.0"
+    api-version: "1.21"
+    description: "A cool plugin with a test command!"
+
+// my_context is a variable that holds the command context - normally, you won't need this, but you still have
+// to declare it for now
+command test(my_context):
+  trigger: // this code runs when /test is used without arguments
+    // we can use event-sender to refer to the command sender, such as console, a command block, or a player
+    run sendRichMessage("<green>Hello " + (getName() of event-sender) + "!") of event-sender
+  subcommand bar:
+    trigger:
+      run sendRichMessage("<red>Hello from Bar!") of event-sender
+    text argument(words):
+      trigger:
+        run sendRichMessage("<red>Hello from Bar! You said " + {_words}) of event-sender
+  player argument(player): // (player) here means we can use {_player} as a variable
+    trigger:
+      run sendRichMessage("<green>You said hi to " + (getName() of {_player}) + "!") of event-sender
+      run sendRichMessage("<green>" + (getName() of event-sender) + " says hi!") of {_player}
