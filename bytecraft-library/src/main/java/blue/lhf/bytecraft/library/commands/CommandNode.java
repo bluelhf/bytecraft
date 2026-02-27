@@ -1,11 +1,11 @@
 package blue.lhf.bytecraft.library.commands;
 
 
+import blue.lhf.bytecraft.runtime.BukkitHook;
+import blue.lhf.bytecraft.runtime.CommandWrapper;
 import com.google.common.base.Objects;
 import com.mojang.brigadier.Command;
-import com.mojang.brigadier.builder.ArgumentBuilder;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.mojang.brigadier.builder.RequiredArgumentBuilder;
+import com.mojang.brigadier.builder.*;
 import com.mojang.brigadier.context.CommandContext;
 import mx.kenzie.foundation.*;
 import org.byteskript.skript.compiler.CommonTypes;
@@ -18,6 +18,7 @@ import java.util.*;
 
 import static java.lang.reflect.Modifier.PUBLIC;
 import static java.lang.reflect.Modifier.STATIC;
+import static mx.kenzie.foundation.WriteInstruction.*;
 import static org.objectweb.asm.Opcodes.H_INVOKESTATIC;
 
 /**
@@ -99,15 +100,8 @@ public sealed interface CommandNode permits CommandNode.Argument, CommandNode.Li
      * */
     default WriteInstruction build(final ClassBuilder context) {
         final Type builderType = new Type("com.mojang.brigadier.builder.ArgumentBuilder");
-        final WriteInstruction executor = executor();
-
         final MethodErasure targetErasure = new MethodErasure(new Type(int.class), "run", new Type("com.mojang.brigadier.context.CommandContext"));
-        final MethodBuilder lambda =
-                context.addMethod("lambda$F" + System.identityHashCode(executor))
-                        .addModifiers(PUBLIC, STATIC).setReturnType(int.class)
-                        .addParameter(new Type("com.mojang.brigadier.context.CommandContext"))
-                        .writeCode(WriteInstruction.loadObject(0))
-                        .writeCode(executor).writeCode(WriteInstruction.returnSmall());
+        final MethodBuilder lambda = buildInvoker(context);
 
         final WriteInstruction[] compiledChildren = children().stream()
                 .map(node -> node.build(context)).toArray(WriteInstruction[]::new);
@@ -115,30 +109,60 @@ public sealed interface CommandNode permits CommandNode.Argument, CommandNode.Li
         return (method, builder) -> {
             nodeBuilder().accept(method, builder);
 
-            final MethodErasure metafactorySignature = new MethodErasure(CallSite.class, "metafactory",
-                    MethodHandles.Lookup.class, String.class, MethodType.class, MethodType.class, MethodHandle.class, MethodType.class);
+            {
+                WriteInstruction.loadClassConstant(BukkitHook.COMPILED_HOOK_TYPE).accept(method, builder);
+                WriteInstruction.invokeStatic(Type.of("org/bukkit/plugin/java/JavaPlugin"),
+                        new MethodErasure(Type.of("org/bukkit/plugin/java/JavaPlugin"), "getPlugin", Type.of(Class.class))).accept(method, builder);
 
-            final MethodErasure factoryErasure = new MethodErasure(new Type("com.mojang.brigadier.Command"), targetErasure.name());
+                WriteInstruction.cast(BukkitHook.COMPILED_HOOK_TYPE).accept(method, builder);
 
-            builder.visitInvokeDynamicInsn(
-                    factoryErasure.name(), factoryErasure.getDescriptor(),
-                    new Handle(H_INVOKESTATIC,
-                            new Type(LambdaMetafactory.class).internalName(),
-                            metafactorySignature.name(),
-                            metafactorySignature.getDescriptor(),
-                            false
-                    ),
-                    org.objectweb.asm.Type.getMethodType(targetErasure.getDescriptor()),
-                    new Handle(H_INVOKESTATIC, context.getInternalName(), lambda.getErasure().name(), lambda.getErasure().getDescriptor(), false),
-                    org.objectweb.asm.Type.getMethodType(targetErasure.getDescriptor())
-            );
+                WriteInstruction.invokeVirtual(BukkitHook.COMPILED_HOOK_TYPE, new Type(CommandWrapper.class), "getCommandWrapper").accept(method, builder);
+            }
 
-            WriteInstruction.invokeVirtual(builderType, builderType, "executes", new Type("com.mojang.brigadier.Command")).accept(method, builder);
+            WriteInstruction.loadClassConstant(context.getType()).accept(method, builder);
+
+            {
+                final MethodErasure metafactorySignature = new MethodErasure(CallSite.class, "metafactory",
+                        MethodHandles.Lookup.class, String.class, MethodType.class, MethodType.class, MethodHandle.class, MethodType.class);
+
+                final MethodErasure factoryErasure = new MethodErasure(new Type("com.mojang.brigadier.Command"), targetErasure.name());
+
+                builder.visitInvokeDynamicInsn(
+                        factoryErasure.name(), factoryErasure.getDescriptor(),
+                        new Handle(H_INVOKESTATIC,
+                                new Type(LambdaMetafactory.class).internalName(),
+                                metafactorySignature.name(),
+                                metafactorySignature.getDescriptor(),
+                                false
+                        ),
+                        org.objectweb.asm.Type.getMethodType(targetErasure.getDescriptor()),
+                        new Handle(H_INVOKESTATIC, context.getInternalName(), lambda.getErasure().name(), lambda.getErasure().getDescriptor(), false),
+                        org.objectweb.asm.Type.getMethodType(targetErasure.getDescriptor())
+                );
+            }
+
+            WriteInstruction.invokeVirtual(new Type(CommandWrapper.class),
+                            new Type("com.mojang.brigadier.Command"),
+                            "wrapInAirlock", CommonTypes.CLASS, new Type("com.mojang.brigadier.Command")
+                    ).accept(method, builder);
+
+            invokeVirtual(builderType, builderType, "executes", new Type("com.mojang.brigadier.Command")).accept(method, builder);
             for (final WriteInstruction compiledChild : compiledChildren) {
                 compiledChild.accept(method, builder);
-                WriteInstruction.invokeVirtual(builderType, builderType, "then", builderType).accept(method, builder);
+                invokeVirtual(builderType, builderType, "then", builderType).accept(method, builder);
             }
         };
+    }
+    private MethodBuilder buildInvoker(final ClassBuilder context) {
+        final WriteInstruction executor = executor();
+        return context.addMethod("lambda$P" + System.identityHashCode(executor))
+                .addModifiers(PUBLIC, STATIC).setReturnType(int.class)
+                .addParameter(new Type("com.mojang.brigadier.context.CommandContext"))
+                .writeCode(
+                        loadObject(0),
+                        executor,
+                        returnSmall()
+                );
     }
 
     /**
@@ -203,10 +227,14 @@ public sealed interface CommandNode permits CommandNode.Argument, CommandNode.Li
          * @return A {@link WriteInstruction} that loads the argument value from the context.
          */
         default WriteInstruction loader() {
+            return argumentLoader(label(), argumentClass());
+        }
+
+        private @NotNull WriteInstruction argumentLoader(final String name, final Type clazz) {
             return (method, builder) -> {
-                WriteInstruction.loadConstant(label()).accept(method, builder);
-                WriteInstruction.loadClassConstant(argumentClass()).accept(method, builder);
-                WriteInstruction.invokeVirtual(Type.of("com/mojang/brigadier/context/CommandContext"),
+                loadConstant(name).accept(method, builder);
+                loadClassConstant(clazz).accept(method, builder);
+                invokeVirtual(Type.of("com/mojang/brigadier/context/CommandContext"),
                         CommonTypes.OBJECT, "getArgument", CommonTypes.STRING, CommonTypes.CLASS).accept(method, builder);
             };
         }
