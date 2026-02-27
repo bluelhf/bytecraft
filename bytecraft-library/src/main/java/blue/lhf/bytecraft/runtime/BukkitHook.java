@@ -22,6 +22,7 @@ public class BukkitHook {
 
     public static class BootstrapPlugin extends JavaPlugin {
         private final Skript skript = new Skript(null);
+        private final CommandWrapper wrapper = new CommandWrapper(skript);
         @Override
         public void onLoad() {
             try {
@@ -29,6 +30,10 @@ public class BukkitHook {
             } catch (final Exception e) {
                 getLogger().log(Level.SEVERE, "Failed to run script", e);
             }
+        }
+
+        public CommandWrapper getCommandWrapper() {
+            return wrapper;
         }
 
         @Override
