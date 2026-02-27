@@ -34,6 +34,12 @@ public class ExprBlockAt extends RelationalExpression {
     }
 
     @Override
+    public Pattern.Match match(final String thing, final Context context) {
+        if (!thing.contains("block")) return null;
+        return super.match(thing, context);
+    }
+
+    @Override
     public void compile(final Context context, final Pattern.Match match) {
         switch (match.matchedPattern) {
             case 0 -> writeCall(context.getMethod(), findMethod(Location.class, "getBlock"), context);

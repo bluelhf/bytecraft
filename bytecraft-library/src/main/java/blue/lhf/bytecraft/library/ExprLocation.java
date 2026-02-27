@@ -6,6 +6,8 @@ import org.bukkit.Location;
 import org.byteskript.skript.api.Library;
 import org.byteskript.skript.api.note.Documentation;
 import org.byteskript.skript.api.syntax.RelationalExpression;
+import org.byteskript.skript.compiler.Context;
+import org.byteskript.skript.compiler.Pattern;
 import org.byteskript.skript.lang.element.StandardElements;
 import org.byteskript.skript.lang.handler.StandardHandlers;
 
@@ -29,6 +31,12 @@ public class ExprLocation extends RelationalExpression {
         final Method handler = findMethod(BytecraftExtractedCalls.class, "findLocation", Object.class, Object.class, Object.class, Object.class);
         setHandler(StandardHandlers.FIND, handler);
         setHandler(StandardHandlers.GET, handler);
+    }
+
+    @Override
+    public Pattern.Match match(final String thing, final Context context) {
+        if (!thing.contains(", ") || !thing.contains("in")) return null;
+        return super.match(thing, context);
     }
 
     @Override

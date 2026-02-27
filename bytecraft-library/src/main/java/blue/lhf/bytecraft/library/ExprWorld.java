@@ -6,6 +6,8 @@ import org.bukkit.World;
 import org.byteskript.skript.api.Library;
 import org.byteskript.skript.api.note.Documentation;
 import org.byteskript.skript.api.syntax.RelationalExpression;
+import org.byteskript.skript.compiler.Context;
+import org.byteskript.skript.compiler.Pattern;
 import org.byteskript.skript.lang.element.StandardElements;
 import org.byteskript.skript.lang.handler.StandardHandlers;
 
@@ -28,6 +30,12 @@ public class ExprWorld extends RelationalExpression {
         final Method handler = findMethod(BytecraftExtractedCalls.class, "findWorld", Object.class);
         setHandler(StandardHandlers.FIND, handler);
         setHandler(StandardHandlers.GET, handler);
+    }
+
+    @Override
+    public Pattern.Match match(final String thing, final Context context) {
+        if (!thing.contains("world")) return null;
+        return super.match(thing, context);
     }
 
     @Override
