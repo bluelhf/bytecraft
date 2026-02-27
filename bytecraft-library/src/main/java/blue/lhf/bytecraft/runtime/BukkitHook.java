@@ -1,5 +1,6 @@
 package blue.lhf.bytecraft.runtime;
 
+import blue.lhf.bytecraft.runtime.events.EnableEvent;
 import mx.kenzie.foundation.Type;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -50,7 +51,7 @@ public class BukkitHook {
                 }
             }, 1, 1);
 
-            skript.runEvent(new Enable()).all().join();
+            skript.runEvent(new EnableEvent()).all().join();
         }
     }
 
