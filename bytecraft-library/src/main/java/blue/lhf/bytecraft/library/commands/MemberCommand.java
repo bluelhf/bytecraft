@@ -1,7 +1,7 @@
 package blue.lhf.bytecraft.library.commands;
 
 import blue.lhf.bytecraft.runtime.BukkitHook;
-import blue.lhf.bytecraft.runtime.Enable;
+import blue.lhf.bytecraft.runtime.events.EnableEvent;
 import mx.kenzie.foundation.*;
 import org.byteskript.skript.api.Library;
 import org.byteskript.skript.api.note.Documentation;
@@ -174,7 +174,7 @@ public class MemberCommand extends TriggerHolder {
                 .addModifiers(PUBLIC, STATIC).setReturnType(new Type(void.class))
                 .addAnnotation(EventData.class).setVisible(true)
                 .addValue("name", name())
-                .addValue("event", Enable.class.getName())
+                .addValue("event", EnableEvent.class.getName())
                 .addValue("async", false).finish()
                 .writeCode(
                         WriteInstruction.loadClassConstant(BukkitHook.COMPILED_HOOK_TYPE),
