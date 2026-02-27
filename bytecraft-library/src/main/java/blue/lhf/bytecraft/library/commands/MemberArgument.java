@@ -51,7 +51,8 @@ import java.util.stream.Collectors;
 public class MemberArgument extends TriggerHolder {
     enum MemberType {
         INTEGER(java.util.regex.Pattern.compile("int(?:eger)?")),
-        STRING(java.util.regex.Pattern.compile("string|text"));
+        STRING(java.util.regex.Pattern.compile("string|text")),
+        PLAYER(java.util.regex.Pattern.compile("player"));
 
         private final java.util.regex.Pattern pattern;
 
@@ -130,15 +131,15 @@ public class MemberArgument extends TriggerHolder {
 
         final AtomicReference<WriteInstruction> deferredCall = new AtomicReference<>();
 
+        final WriteInstruction call = (method, builder) -> {
+            deferredCall.get().accept(method, builder);
+            WriteInstruction.invokeVirtual(CommonTypes.INTEGER, new Type(int.class), "intValue").accept(method, builder);
+        };
+
         final CommandNode.Argument node = switch (details.type()) {
-            case INTEGER -> CommandNode.integerArgument(data.currentNode(), details.param(), (method, builder) -> {
-                deferredCall.get().accept(method, builder);
-                WriteInstruction.invokeVirtual(CommonTypes.INTEGER, new Type(int.class), "intValue").accept(method, builder);
-            });
-            case STRING -> CommandNode.stringArgument(data.currentNode(), details.param(), (method, builder) -> {
-                deferredCall.get().accept(method, builder);
-                WriteInstruction.invokeVirtual(CommonTypes.INTEGER, new Type(int.class), "intValue").accept(method, builder);
-            });
+            case INTEGER -> CommandNode.integerArgument(data.currentNode(), details.param(), call);
+            case STRING -> CommandNode.stringArgument(data.currentNode(), details.param(), call);
+            case PLAYER -> CommandNode.playerArgument(data.currentNode(), details.param(), call);
         };
 
         data.enterNode(node);

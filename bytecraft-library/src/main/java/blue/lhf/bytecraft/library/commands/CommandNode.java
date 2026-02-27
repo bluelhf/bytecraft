@@ -211,12 +211,16 @@ public sealed interface CommandNode permits CommandNode.Argument, CommandNode.Li
         return new IntegerArgument(parent, new HashSet<>(), name, executor);
     }
 
+    static Argument playerArgument(final CommandNode parent, final String label, final WriteInstruction executor) {
+        return new PlayerSelectorArgument(parent, new HashSet<>(), label, executor);
+    }
+
     /**
      * Represents a parameterised command node that captures a value from the input (e.g. a string or integer).
      * Implementations are responsible for describing their Brigadier argument type and for loading their value
      * from the {@link CommandContext} when the node executes.
      */
-    sealed interface Argument extends CommandNode permits StringArgument, IntegerArgument {
+    sealed interface Argument extends CommandNode permits IntegerArgument, PlayerSelectorArgument, StringArgument {
         @Override @NotNull
         CommandNode parent();
 
@@ -250,14 +254,14 @@ public sealed interface CommandNode permits CommandNode.Argument, CommandNode.Li
         @Override
         default WriteInstruction executor() {
             return (method, visitor) -> {
-                WriteInstruction.duplicate().accept(method, visitor);
+                duplicate().accept(method, visitor);
                 for (final Argument argument : arguments()) {
-                    WriteInstruction.duplicate().accept(method, visitor);
+                    duplicate().accept(method, visitor);
                     argument.loader().accept(method, visitor);
-                    WriteInstruction.cast(argument.argumentClass()).accept(method, visitor);
-                    WriteInstruction.swap().accept(method, visitor);
+                    cast(argument.argumentClass()).accept(method, visitor);
+                    swap().accept(method, visitor);
                 }
-                WriteInstruction.pop().accept(method, visitor);
+                pop().accept(method, visitor);
                 executorWithArguments().accept(method, visitor);
             };
         }
@@ -265,9 +269,9 @@ public sealed interface CommandNode permits CommandNode.Argument, CommandNode.Li
         @Override
         default WriteInstruction nodeBuilder() {
             return (method, builder) -> {
-                WriteInstruction.loadConstant(label()).accept(method, builder);
+                loadConstant(label()).accept(method, builder);
                 argumentTypeResolver().accept(method, builder);
-                WriteInstruction.invokeStatic(
+                invokeStatic(
                         true,
                         new Type("io.papermc.paper.command.brigadier.Commands"),
                         new Type("com.mojang.brigadier.builder.RequiredArgumentBuilder"),
@@ -316,8 +320,8 @@ public sealed interface CommandNode permits CommandNode.Argument, CommandNode.Li
         @Override
         public WriteInstruction nodeBuilder() {
             return (method, builder) -> {
-                WriteInstruction.loadConstant(label()).accept(method, builder);
-                WriteInstruction.invokeStatic(
+                loadConstant(label()).accept(method, builder);
+                invokeStatic(
                         true,
                         new Type("io.papermc.paper.command.brigadier.Commands"),
                         new Type("com.mojang.brigadier.builder.LiteralArgumentBuilder"),
@@ -353,7 +357,7 @@ public sealed interface CommandNode permits CommandNode.Argument, CommandNode.Li
 
         @Override
         public WriteInstruction argumentTypeResolver() {
-            return WriteInstruction.invokeStatic(
+            return invokeStatic(
                     new Type("com.mojang.brigadier.arguments.StringArgumentType"),
                     new Type("com.mojang.brigadier.arguments.StringArgumentType"), "string");
         }
@@ -385,7 +389,7 @@ public sealed interface CommandNode permits CommandNode.Argument, CommandNode.Li
 
         @Override
         public WriteInstruction argumentTypeResolver() {
-            return WriteInstruction.invokeStatic(new Type("com.mojang.brigadier.arguments.IntegerArgumentType"), new Type("com.mojang.brigadier.arguments.IntegerArgumentType"), "integer");
+            return invokeStatic(new Type("com.mojang.brigadier.arguments.IntegerArgumentType"), new Type("com.mojang.brigadier.arguments.IntegerArgumentType"), "integer");
         }
 
         @Override
@@ -396,6 +400,44 @@ public sealed interface CommandNode permits CommandNode.Argument, CommandNode.Li
         @Override
         public @NotNull String toString() {
             return "IntegerArgument(" + label + "[" + children + "] -> " + System.identityHashCode(executorWithArguments) + ")";
+        }
+    }
+
+    record PlayerSelectorArgument(@NotNull CommandNode parent, Set<CommandNode> children, String label, WriteInstruction executorWithArguments) implements Argument {
+        @Override
+        public Type argumentClass() {
+            return new Type("org.bukkit.entity.Player");
+        }
+
+        @Override
+        public WriteInstruction loader() {
+            return (builder, visitor) -> {
+                duplicate().accept(builder, visitor);
+                Argument.super.argumentLoader(label(), new Type("io.papermc.paper.command.brigadier.argument.resolvers.selector.PlayerSelectorArgumentResolver")).accept(builder, visitor);
+                swap().accept(builder, visitor);
+                invokeVirtual(new Type("com.mojang.brigadier.context.CommandContext"), CommonTypes.OBJECT, "getSource").accept(builder, visitor);
+                cast(new Type("io.papermc.paper.command.brigadier.CommandSourceStack")).accept(builder, visitor);
+                invokeInterface(new Type("io.papermc.paper.command.brigadier.argument.resolvers.ArgumentResolver"),
+                        CommonTypes.OBJECT, "resolve", new Type("io.papermc.paper.command.brigadier.CommandSourceStack")).accept(builder, visitor);
+                cast(new Type(SequencedCollection.class)).accept(builder, visitor);
+                invokeInterface(new Type(SequencedCollection.class), CommonTypes.OBJECT, "getFirst").accept(builder, visitor);
+                cast(argumentClass()).accept(builder, visitor);
+            };
+        }
+
+        @Override
+        public WriteInstruction argumentTypeResolver() {
+            return invokeStatic(new Type("io.papermc.paper.command.brigadier.argument.ArgumentTypes"), new Type("com.mojang.brigadier.arguments.ArgumentType"), "player");
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(children, label, executorWithArguments);
+        }
+
+        @Override
+        public @NotNull String toString() {
+            return "PlayerSelectorArgument(" + children + ") -> " + System.identityHashCode(executorWithArguments);
         }
     }
 }
