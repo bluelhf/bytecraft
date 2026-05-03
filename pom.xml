@@ -46,7 +46,7 @@
         <repository>
             <id>kenzie</id>
             <name>Kenzie's Repository</name>
-            <url>https://repo.kenzie.mx</url>
+            <url>https://repo.kenzie.mx/releases</url>
         </repository>
     </repositories>
 

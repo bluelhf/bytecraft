@@ -1,6 +1,8 @@
 package blue.lhf.bytecraft.runtime;
 
 import blue.lhf.bytecraft.runtime.events.EnableEvent;
+import blue.lhf.bytecraft.runtime.events.EventBridge;
+import blue.lhf.bytecraft.runtime.events.JoinEvent;
 import mx.kenzie.foundation.Type;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -55,6 +57,12 @@ public class BukkitHook {
                     }
                 }
             }, 1, 1);
+
+            try {
+                EventBridge.registerBridge(JoinEvent.class, this, skript);
+            } catch (final Exception e) {
+                getLogger().log(Level.SEVERE, "Failed to register event bridges", e);
+            }
 
             skript.runEvent(new EnableEvent()).all().join();
         }

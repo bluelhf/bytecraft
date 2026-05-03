@@ -133,7 +133,7 @@ public class MemberArgument extends TriggerHolder {
 
         final WriteInstruction call = (method, builder) -> {
             deferredCall.get().accept(method, builder);
-            WriteInstruction.invokeVirtual(CommonTypes.INTEGER, new Type(int.class), "intValue").accept(method, builder);
+            MemberCommand.convertCommandResult().accept(method, builder);
         };
 
         final CommandNode.Argument node = switch (details.type()) {

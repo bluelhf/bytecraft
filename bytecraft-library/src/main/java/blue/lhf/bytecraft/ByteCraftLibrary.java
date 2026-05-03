@@ -1,11 +1,15 @@
 package blue.lhf.bytecraft;
 
 import blue.lhf.bytecraft.library.*;
+import blue.lhf.bytecraft.library.chat.EffectBroadcast;
+import blue.lhf.bytecraft.library.chat.EffectSend;
+import blue.lhf.bytecraft.library.chat.ExprComponent;
 import blue.lhf.bytecraft.library.commands.*;
 import blue.lhf.bytecraft.library.directions.CardinalLiteral;
 import blue.lhf.bytecraft.library.directions.EgocentricLiteral;
 import blue.lhf.bytecraft.library.events.EventCommand;
 import blue.lhf.bytecraft.library.events.EventEnable;
+import blue.lhf.bytecraft.library.events.EventJoin;
 import blue.lhf.bytecraft.library.plugin_hook.description.*;
 import blue.lhf.bytecraft.runtime.Egocentric;
 import blue.lhf.bytecraft.runtime.RuntimeCollector;
@@ -42,7 +46,9 @@ public class ByteCraftLibrary extends ModifiableLibrary implements BytecraftProv
                 new ExprBlockAt(this),
                 new ExprLocation(this),
                 new ExprWorld(this),
-                new ExprCommandSection(this));
+                new ExprCommandSection(this),
+                new ExprComponent(this)
+            );
 
         registerSyntax(CompileState.ROOT, new MemberPlugin(this), new MemberCommand(this));
 
@@ -54,11 +60,15 @@ public class ByteCraftLibrary extends ModifiableLibrary implements BytecraftProv
                 new MemberArgument(this),
                 new MemberSubcommand(this));
 
+        registerSyntax(CompileState.CODE_BODY,
+            new EffectSend(this),
+            new EffectBroadcast(this));
+
         registerTypes(
                 Location.class, Block.class, CommandSourceStack.class,
                 World.class, BlockFace.class, Egocentric.class);
 
-        registerEvents(new EventEnable(this), new EventCommand(this));
+        registerEvents(new EventEnable(this), new EventCommand(this), new EventJoin(this));
 
         runtime.addAll(RuntimeCollector.collectRuntime(
                 ByteCraftLibrary.class.getProtectionDomain(),

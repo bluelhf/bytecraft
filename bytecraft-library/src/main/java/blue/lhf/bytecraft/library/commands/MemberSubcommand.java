@@ -87,7 +87,7 @@ public class MemberSubcommand extends TriggerHolder {
         final AtomicReference<WriteInstruction> deferredCall = new AtomicReference<>();
         final CommandNode.Literal node = CommandNode.literal(data.currentNode(), label, (method, builder) -> {
             deferredCall.get().accept(method, builder);
-            WriteInstruction.invokeVirtual(CommonTypes.INTEGER, new Type(int.class), "intValue").accept(method, builder);
+            MemberCommand.convertCommandResult().accept(method, builder);
         });
 
         data.enterNode(node);

@@ -2,6 +2,7 @@ package blue.lhf.bytecraft.library.commands;
 
 import blue.lhf.bytecraft.runtime.BukkitHook;
 import blue.lhf.bytecraft.runtime.events.EnableEvent;
+import com.mojang.brigadier.Command;
 import mx.kenzie.foundation.*;
 import org.byteskript.skript.api.Library;
 import org.byteskript.skript.api.note.Documentation;
@@ -13,6 +14,7 @@ import org.byteskript.skript.lang.element.StandardElements;
 import org.byteskript.skript.runtime.data.EventData;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.Handle;
+import org.objectweb.asm.Label;
 
 import java.lang.invoke.*;
 import java.lang.reflect.Modifier;
@@ -23,6 +25,7 @@ import java.util.regex.Matcher;
 
 import static blue.lhf.bytecraft.ByteCraftFlag.IN_COMMAND_MEMBER;
 import static java.lang.reflect.Modifier.*;
+import static mx.kenzie.foundation.WriteInstruction.*;
 import static org.byteskript.skript.compiler.CompileState.MEMBER_BODY;
 import static org.objectweb.asm.Opcodes.H_INVOKESTATIC;
 
@@ -58,6 +61,24 @@ public class MemberCommand extends TriggerHolder {
 
     public MemberCommand(final Library provider) {
         super(provider, StandardElements.MEMBER, "command(...)");
+    }
+
+    public static WriteInstruction convertCommandResult() {
+        final Label notNull = new Label();
+        final Label end = new Label();
+        return (visitor, builder) -> {
+            for (final WriteInstruction instruction : new WriteInstruction[]{
+                duplicate(),
+                jumpIfNotNull(notNull),
+                pop(), getStaticField(new Type(Command.class), new FieldErasure(int.class, "SINGLE_SUCCESS")),
+                jump(end),
+                label(notNull),
+                WriteInstruction.invokeVirtual(CommonTypes.INTEGER, new Type(int.class), "intValue"),
+                label(end)
+            }) {
+                instruction.accept(visitor, builder);
+            }
+        };
     }
 
     public static String callSiteFor(final CommandNode commandNode) {
@@ -104,7 +125,7 @@ public class MemberCommand extends TriggerHolder {
         final MethodErasure signature = new MethodErasure(returnType(context, match), callSiteName(context, match), parameters(context, match.matcher()));
         deferredWrite.set((method, builder) -> {
             WriteInstruction.invokeStatic(context.getBuilder().getType(), signature).accept(method, builder);
-            WriteInstruction.invokeVirtual(CommonTypes.INTEGER, new Type(int.class), "intValue").accept(method, builder);
+            convertCommandResult().accept(method, builder);
         });
         super.compile(context, match);
     }
