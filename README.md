@@ -1,7 +1,3 @@
-> [!Warning]
-> This repository is a stub. While ByteCraft works, it only includes
-> minimal syntax for interacting with the Bukkit server.
-
 # ByteCraft
 
 ByteCraft is a [ByteSkript](https://github.com/Moderocky/ByteSkript) library that provides [Paper](https://papermc.io/software/paper/) server integration capabilities.
