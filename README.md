@@ -31,14 +31,6 @@ ByteCraft is a [ByteSkript](https://github.com/Moderocky/ByteSkript) library tha
 
 You must have [git](https://git-scm.com/install/) and [Java 21](https://adoptium.net/temurin/releases/?version=21) or higher installed.
 
-> [!Warning]
-> Currently (2026-01-07), compilation using these steps does not work
-> because ByteCraft depends on features which are yet unreleased
-> in ByteSkript. To build using these instrcutions, you must first
-> build and install Mirror 5.0.5 and ByteSkript 1.0.41 by compiling
-> [my fork of Mirror](https://github.com/bluelhf/Mirror) and [my fork of ByteSkript](https://github.com/bluelhf/ByteSkript)
-> using `mvn source:jar install`
-
 1. Open the Terminal.
 2. Clone the repository using `git clone https://github.com/bluelhf/bytecraft/`
 3. Move to it using `cd bytecraft`
